@@ -5,7 +5,7 @@ import asyncio
 import string
 import warnings
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import TYPE_CHECKING
 
 import aioserial
@@ -253,7 +253,7 @@ class ML600Commands(Enum):
     OPTIONAL_PARAMETER = "S"
 
 
-class ValveType(Enum):
+class ValveType(StrEnum):
     """Enum for supported valve types in ML600."""
     LEFT = "ML600LeftValve"
     RIGHT = "ML600RightValve"
@@ -273,9 +273,9 @@ class ML600(FlowchemDevice):
     DEFAULT_CONFIG = {
         "default_infuse_rate": "1 ml/min",
         "default_withdraw_rate": "1 ml/min",
-        "valve_left_class": ValveType.LEFT.value,     # for device with two syringe pump and two valve
-        "valve_right_class": ValveType.RIGHT.value,   # for device with two syringe pump and two valve
-        "valve_class": ValveType.LEFT.value           # for device with one syringe pump and valve
+        "valve_left_class": ValveType.LEFT,     # for device with two syringe pump and two valve
+        "valve_right_class": ValveType.RIGHT,   # for device with two syringe pump and two valve
+        "valve_class": ValveType.LEFT           # for device with one syringe pump and valve
     }
 
     # This class variable is used for daisy chains (i.e. multiple pumps on the same serial connection). Details below.
