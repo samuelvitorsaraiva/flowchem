@@ -273,9 +273,9 @@ class ML600(FlowchemDevice):
     DEFAULT_CONFIG = {
         "default_infuse_rate": "1 ml/min",
         "default_withdraw_rate": "1 ml/min",
-        "valve_left_class": ValveType.LEFT,     # for device with two syringe pumps and two valves
-        "valve_right_class": ValveType.RIGHT,   # for device with two syringe pumps and two valves
-        "valve_class": ValveType.LEFT           # for device with one syringe pump and one valve
+        "left_valve": ValveType.LEFT,     # for device with two syringe pumps and two valves and for
+                                          # device with one syringe and one pump
+        "right_valve": ValveType.RIGHT,   # for device with two syringe pumps and two valves
     }
 
     # This class variable is used for daisy chains (i.e. multiple pumps on the same serial connection). Details below.
@@ -358,21 +358,16 @@ class ML600(FlowchemDevice):
         self.dual_syringe = False
 
     def inspect_valve_argument(self, config: dict):
-        if config.get("valve_left_class") and config.get("valve_left_class") not in ValveType:
+        if config.get("left_valve") and config.get("left_valve") not in ValveType:
             logger.error(f"Invalid valve configuration in left valve of {self.name}!")
             logger.error(f"Supported valve types are: {[v.value for v in ValveType]}.")
             logger.error("Assuming default configuration!")
-            config.pop("valve_left_class")
-        if config.get("valve_right_class") and config.get("valve_right_class") not in ValveType:
+            config.pop("left_valve")
+        if config.get("right_valve") and config.get("right_valve") not in ValveType:
             logger.error(f"Invalid valve configuration in right valve of {self.name}!")
             logger.error(f"Supported valve types are: {[v.value for v in ValveType]}.")
             logger.error("Assuming default configuration!")
-            config.pop("valve_right_class")
-        if config.get("valve_class") and config.get("valve_class") not in ValveType:
-            logger.error(f"Invalid valve configuration in valve of {self.name}!")
-            logger.error(f"Supported valve types are: {[v.value for v in ValveType]}.")
-            logger.error("Assuming default configuration!")
-            config.pop("valve_class")
+            config.pop("right_valve")
         # This will merge the config into ML600.DEFAULT_CONFIG (in order to update)
         self.config = ML600.DEFAULT_CONFIG | config
 
@@ -454,8 +449,8 @@ class ML600(FlowchemDevice):
             ])
 
             # Handle valve configuration
-            left_valve = ValveType(self.config["valve_left_class"])
-            right_valve = ValveType(self.config["valve_right_class"])
+            left_valve = ValveType(self.config["left_valve"])
+            right_valve = ValveType(self.config["right_valve"])
             self.components.extend([
                 ML600LeftValve("left_valve", self) if left_valve == ValveType.LEFT else ML600RightValve("left_valve",
                                                                                                         self),
@@ -465,7 +460,7 @@ class ML600(FlowchemDevice):
         else:
             # Single syringe system
             self.components.append(ML600Pump("pump", self))
-            valve = ValveType(self.config["valve_class"])
+            valve = ValveType(self.config["left_valve"])
             self.components.append(
                 ML600LeftValve("valve", self) if valve == ValveType.LEFT else ML600RightValve("valve", self))
 
