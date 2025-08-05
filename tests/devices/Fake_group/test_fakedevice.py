@@ -29,7 +29,7 @@ def api_dev(xprocess):
 @pytest.mark.FakeDevice
 def test_fakedevice(api_dev):
     component = api_dev['test']['FakeSpecificComponent']
-    assert component.put("set_specif_command", params={"parameter_1": "first", "parameter_2": "second"})
+    assert component.put("fake_send_command", params={"parameter_1": "first", "parameter_2": "second"})
 
 
 @pytest.mark.FakeDevice

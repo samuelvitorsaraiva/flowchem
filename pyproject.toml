@@ -175,7 +175,8 @@ markers = [
     "ML600: test for ML600 pump",
     "Knauer_Distribution_Valve: test knauer distribution valve",
     "CVC3000: Test CVC3000 vacun pump",
-    "Manson: Test Manson power control"
+    "Manson: Test Manson power control",
+    "FakeDevice: Test fake device"
 ]
 
 [tool.ruff]

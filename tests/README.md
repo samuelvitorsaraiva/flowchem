@@ -56,7 +56,7 @@ def test_fakedevice(api_dev):
     ...
 ```
 
-To run these example the user can write in local prompt:
+To run these example, the user can write in local prompt:
 ```shell
 pytest ./tests -m FakeDevice -s
 ```
