@@ -391,7 +391,7 @@ class ML600(FlowchemDevice):
             config_for_pumpio = {
                 k: v
                 for k, v in config.items()
-                if k not in ("syringe_volume", "address", "name") and k not in cls.DEFAULT_CONFIG
+                if k not in ("syringe_volume", "address", "name", *cls.DEFAULT_CONFIG.keys())
             }
             pumpio = HamiltonPumpIO.from_config(config_for_pumpio)
 
