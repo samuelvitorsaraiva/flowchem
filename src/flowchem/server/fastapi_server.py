@@ -4,6 +4,7 @@ from importlib.metadata import metadata, version
 
 from fastapi import APIRouter, FastAPI
 from loguru import logger
+from typing import Any
 from starlette.responses import RedirectResponse
 
 from flowchem.components.device_info import DeviceInfo
@@ -26,7 +27,7 @@ class FastAPIServer:
             },
         )
         self.base_url = rf"http://{host}:{port}"
-        self.configuration_dict: dict = {}
+        self.configuration_dict: dict[str, Any] = {}
 
         self._add_root_redirect()
         self._add_configuration_retrieve()
