@@ -26,8 +26,10 @@ class FastAPIServer:
             },
         )
         self.base_url = rf"http://{host}:{port}"
+        self.configuration_dict: dict = {}
 
         self._add_root_redirect()
+        self._add_configuration_retrive()
 
         logger.debug("HTTP ASGI server app created")
 
@@ -36,6 +38,14 @@ class FastAPIServer:
         def home_redirect_to_docs(request):
             """Redirect root to `/docs` to enable interaction w/ API."""
             return RedirectResponse(url="/docs")
+
+    def _add_configuration_retrive(self) -> None:
+        @self.app.get(
+            "/config",
+            tags=["system"],
+        )
+        def config():
+            return self.configuration_dict
 
     def add_background_tasks(self, repeated_tasks: Iterable[RepeatedTaskInfo]):
         """Schedule repeated tasks to run upon server startup."""
