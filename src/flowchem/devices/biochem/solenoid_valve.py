@@ -123,8 +123,8 @@ class BioChemSolenoidValve(FlowchemDevice):
         self._io = SwitchBoxMPIKG.INSTANCES[self.support]
         # Register the standard SolenoidValve component/API on this device
         self.components.append(SolenoidValveComponent("valve", self))
-        logger.info(f"Connected to BioChemSolenoidValve {"normally open" if self.normally_open else "normally close"} "
-                    f"on '{self.support}' channel {self.channel}!")
+        conf_valve = "normally open" if self.normally_open else "normally close"
+        logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support}' channel {self.channel}!")
 
     async def change_status(self, value: bool, switch_to_low_after=-1):
         """

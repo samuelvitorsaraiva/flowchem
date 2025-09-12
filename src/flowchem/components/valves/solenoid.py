@@ -59,7 +59,7 @@ class SolenoidValve(FlowchemComponent):
         bool
             `True` if the valve is open, `False` if closed.
         """
-        ...
+        return True
 
 
 class SolenoidValve2way(SolenoidValve):

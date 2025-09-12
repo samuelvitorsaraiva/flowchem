@@ -37,7 +37,7 @@ class Relay(PowerSwitch):
             "https://w3id.org/saref#Switch",
         )
 
-    async def power_on(self, channel: str) -> bool:
+    async def power_on(self, channel: str) -> bool:  # type:ignore[override]
         """
         Switch a relay channel ON.
 
@@ -51,9 +51,9 @@ class Relay(PowerSwitch):
             This method corresponds to a ``saref:OnCommand`` in the
             context of a ``saref:OnOffFunction``.
         """
-        ...
+        return True
 
-    async def power_off(self, channel: str) -> bool:
+    async def power_off(self, channel: str) -> bool:  # type:ignore[override]
         """
         Switch a relay channel OFF.
 
@@ -67,4 +67,4 @@ class Relay(PowerSwitch):
             This method corresponds to a ``saref:OffCommand`` in the
             context of a ``saref:OnOffFunction``.
         """
-        ...
+        return True

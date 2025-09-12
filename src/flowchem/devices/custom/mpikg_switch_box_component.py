@@ -57,7 +57,7 @@ class SwitchBoxADC(AnalogDigitalSignal):
 
         self.add_api_route("/read_all", self.read_all, methods=["GET"])
 
-    async def read(self, channel: str) -> float:
+    async def read(self, channel: str) -> float:  # type:ignore[override]
         """
         Read ADC (Analog  Digital Channels) channel (1 to 8).
 
@@ -100,7 +100,7 @@ class SwitchBoxRelay(Relay):
         self.add_api_route("/port", self.set_ports, methods=["PUT"])
 
 
-    async def power_on(self, channel: str) -> bool:
+    async def power_on(self, channel: str) -> bool:  # type:ignore[override]
         """
         Set the state ON of a single relay channel.
 
@@ -112,7 +112,7 @@ class SwitchBoxRelay(Relay):
         """
         return await self.set_channel(channel, value="2")
 
-    async def power_off(self, channel: str) -> bool:
+    async def power_off(self, channel: str) -> bool:  # type:ignore[override]
         """
         Set the state OFF of a single relay channel.
 

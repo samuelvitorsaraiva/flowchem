@@ -21,7 +21,7 @@ class SolenoidValveComponent(SolenoidValve):
 
         self.add_api_route("/switch_to_low_power", self.switch_to_low_power, methods=["PUT"])
 
-        self.low_power_after = -1  # -1 is off
+        self.low_power_after: float = -1  # -1 is off
 
     async def switch_to_low_power(self, after: float):
         """
@@ -50,7 +50,7 @@ class SolenoidValveComponent(SolenoidValve):
         This method energizes the solenoid, switching the valve to the
         "open" state, allowing flow through the channel.
         """
-        return await self.hw_device.change_status(True, self.low_power_after)
+        return await self.hw_device.change_status(True, self.low_power_after)  # type:ignore[attr-defined]
 
     async def close(self):
         """
@@ -59,7 +59,7 @@ class SolenoidValveComponent(SolenoidValve):
         This method de-energizes the solenoid, switching the valve to
         the "closed" state, stopping flow through the channel.
         """
-        return await self.hw_device.change_status(False, self.low_power_after)
+        return await self.hw_device.change_status(False, self.low_power_after)  # type:ignore[attr-defined]
 
     async def status(self) -> bool:
         """
@@ -70,4 +70,4 @@ class SolenoidValveComponent(SolenoidValve):
         bool
             `True` if the valve is open, `False` if closed.
         """
-        return await self.hw_device.status()
+        return await self.hw_device.status()  # type:ignore[attr-defined]
