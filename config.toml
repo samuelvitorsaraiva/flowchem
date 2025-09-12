@@ -1,0 +1,10 @@
+[device.mybox]
+type = "SwitchBoxMPIKG"
+port = "COM8"
+
+[device.valve]
+type = "BioChemSolenoidValve"
+support = "mybox"
+channel = 1
+normally_open = 1
+
