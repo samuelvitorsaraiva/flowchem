@@ -42,12 +42,12 @@ class FastAPIServer:
 
     def _add_configuration_retrieve(self) -> None:
         @self.app.get(
-            "/config",
+            "/startup_config",
             tags=["system"],
         )
         def config():
             """
-            Return the current server configuration as a dictionary.
+            Return the startup config server configuration as a dictionary.
             This endpoint provides configuration data used by the server,
             such as device settings and parameters.
             """
