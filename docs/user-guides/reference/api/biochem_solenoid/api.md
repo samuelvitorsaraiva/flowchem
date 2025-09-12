@@ -3,5 +3,5 @@ See the [how-to guide](../../devices/valves/biochem_solenoid_valve.md) to config
 
 ```{toctree}
 :maxdepth: 1
-biochem_solenoid
+solenoid_valve
 ```

@@ -20,6 +20,6 @@ See the [device API reference](../../api/biochem_solenoid/solenoid_valve.md) for
 
 ## Further information:
 
-More detail can be found in [datasheet](biochem_solenoid_valve.md).
+More detail can be found in [datasheet](biochem_solenoids.pdf).
 
 
