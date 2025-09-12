@@ -1,8 +1,6 @@
 # Switch Box
 
-The Switch Box was custom-built by the Electronics Lab of the Max Planck Institute of Colloids and Interfaces (MPIKG).  
-The Switch Box was custom-built by the Electronics Lab of the
-Max Planck Institute of Colloids and Interfaces (MPIKG).
+The Switch Box was custom-built by the Electronics Lab of the Max Planck Institute of Colloids and Interfaces (MPIKG).
 
 It provides:
 

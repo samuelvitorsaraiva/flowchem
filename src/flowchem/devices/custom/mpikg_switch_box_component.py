@@ -34,12 +34,12 @@ class SwitchBoxDAC(DigitalAnalogSignal):
         return await self.hw_device.get_dac(channel=int(channel), volts=True)
 
     async def set_channel(self, channel: str, value: float) -> bool:
-        """"
+        """
         Set DAC output voltage.
 
         Args:
-            channel str: DAC channel index (1 or 2).
-            volts float: Target voltage (0 to 5 V).
+            channel (str): DAC channel index (1 or 2).
+            value (float): Target voltage (0 to 5 V).
 
         Returns:
             bool: True if the command succeeded, False otherwise.
@@ -68,12 +68,12 @@ class SwitchBoxADC(AnalogDigitalSignal):
         for key in asw.keys():
             if key[-1] == channel:
                 return asw[key]
-        logger.error(f"There is not channel '{channel} in ADC ports!'")
+        logger.error(f"There is no channel '{channel} in ADC ports!'")
         return -1
 
     async def read_all(self) -> dict[str, float]:
         """
-        Read all ADC (Analog  Digital Channels) channels.
+        Read all ADC (Analog Digital Channels) channels.
 
         Returns:
             dict[str, float]: Mapping of channel IDs (e.g. "ADC1", "ADC2") to measured

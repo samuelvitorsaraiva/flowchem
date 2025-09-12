@@ -122,7 +122,7 @@ def int_to_bit_list(value: int, length: int = 16) -> list[int]:
 
 
 class SwitchBoxException(Exception):
-    """ General Swicth Box exception """
+    """ General Switch Box exception """
     pass
 
 
@@ -231,7 +231,7 @@ class SwitchBoxIO:
 
     @classmethod
     def from_config(cls, port, **serial_kwargs):
-        """Create SwicthBoxIO from config."""
+        """Create SwitchBoxIO from config."""
         # Merge default serial settings with provided ones.
         configuration = dict(SwitchBoxIO.DEFAULT_CONFIG, **serial_kwargs)
 
@@ -285,7 +285,7 @@ class SwitchBoxIO:
     async def write_and_read_reply(
         self, command: SwitchBoxGeneralCommand | SwitchBoxBeferelayCommand
     ) -> str:
-        """ Main SwicthBocIO method. Sends a command to the box, read the replies and returns it, optionally parsed """
+        """ Main SwitchBoxIO method. Sends a command to the box, reads the replies and returns it, optionally parsed """
         async with self.lock:
             self.reset_buffer()
             await self._write(command)
@@ -296,7 +296,7 @@ class SwitchBoxIO:
                 "No response received from box, check port address!"
             )
         if response.startswith("ERROR"):
-            logger.error(f"Error in the command '{command}' sent to the Swicth Box")
+            logger.error(f"Error in the command '{command}' sent to the Switch Box")
         return response
 
 
@@ -502,7 +502,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
 
     async def get_adc(self):
         """
-        Read all ADC (Analog  Digital Channels) channels.
+        Read all ADC (Analog Digital Channels) channels.
 
         Returns:
             dict[str, float]: Mapping of channel IDs (e.g. "ADC1", "ADC2") to measured
@@ -545,7 +545,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
         Set DAC output voltage.
 
         Args:
-            channel (int, optional): DAC channel index (1 or 2). Default = 0.
+            channel (int, optional): DAC channel index (1 or 2). Default = 1.
             volts (float, optional): Target voltage. Default = 5 V.
 
         Returns:
