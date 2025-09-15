@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flowchem.components.technical.ADC import AnalogDigitalSignal
-from flowchem.components.technical.DAC import DigitalAnalogSignal
+from flowchem.components.technical.ADC import AnalogDigitalConverter
+from flowchem.components.technical.DAC import DigitalAnalogConverter
 from flowchem.components.technical.relay import Relay
 from loguru import logger
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .mpikg_switch_box import SwitchBoxMPIKG
 
 
-class SwitchBoxDAC(DigitalAnalogSignal):
+class SwitchBoxDAC(DigitalAnalogConverter):
 
     def __init__(self, name: str, hw_device: "SwitchBoxMPIKG"):
 
@@ -49,7 +49,7 @@ class SwitchBoxDAC(DigitalAnalogSignal):
         )
 
 
-class SwitchBoxADC(AnalogDigitalSignal):
+class SwitchBoxADC(AnalogDigitalConverter):
 
     def __init__(self, name: str, hw_device: "SwitchBoxMPIKG"):
 
@@ -59,25 +59,25 @@ class SwitchBoxADC(AnalogDigitalSignal):
 
     async def read(self, channel: str) -> float:  # type:ignore[override]
         """
-        Read ADC (Analog  Digital Channels) channel (1 to 8).
+        Read ADC (Analog-to-Digital Converter) channel (1 to 8).
 
         Returns:
-            voltage value.
+            voltage value in volts.
         """
         asw = await self.read_all()
-        for key in asw.keys():
-            if key[-1] == channel:
-                return asw[key]
+        value = asw.get(f"ADC{channel}")
+        if value:
+            return value
         logger.error(f"There is no channel '{channel} in ADC ports!'")
         return -1
 
     async def read_all(self) -> dict[str, float]:
         """
-        Read all ADC (Analog Digital Channels) channels.
+        Read all ADC (Analog-to-Digital Converter) channels.
 
         Returns:
             dict[str, float]: Mapping of channel IDs (e.g. "ADC1", "ADC2") to measured
-            voltage values.
+            voltage values in volts.
         """
         self.hw_device: SwitchBoxMPIKG
         return await self.hw_device.get_adc()
@@ -91,13 +91,13 @@ class SwitchBoxRelay(Relay):
 
         self.hw_device: SwitchBoxMPIKG
 
-        self.add_api_route("/channel", self.read_channel, methods=["GET"])
+        self.add_api_route("/channel_setpoint", self.read_channel_setpoint, methods=["GET"])
 
         self.add_api_route("/channel", self.set_channel, methods=["PUT"])
 
-        self.add_api_route("/read_all", self.get_all, methods=["GET"])
+        self.add_api_route("/read_channels_modules", self.read_channels_modules, methods=["GET"])
 
-        self.add_api_route("/port", self.set_ports, methods=["PUT"])
+        self.add_api_route("/port_module", self.set_port_module, methods=["PUT"])
 
 
     async def power_on(self, channel: str) -> bool:  # type:ignore[override]
@@ -124,7 +124,7 @@ class SwitchBoxRelay(Relay):
         """
         return await self.set_channel(channel, value="0")
 
-    async def read_channel(self, channel: str) -> int | bool:
+    async def read_channel_setpoint(self, channel: str) -> int | None:
         """
         Read the current relay state of a single channel.
 
@@ -145,10 +145,10 @@ class SwitchBoxRelay(Relay):
         Returns:
             int | bool:
                 - 0, 1, or 2 → valid relay state.
-                - False → if the channel index is invalid.
+                - None → if the channel index is invalid.
         """
         ch = int(channel)
-        asw = await self.get_all()
+        asw = await self.read_channels_modules()
         if 0 < ch <= 8:
             port, ch = "a", ch
         elif 8 < ch <= 16:
@@ -159,7 +159,7 @@ class SwitchBoxRelay(Relay):
             port, ch = "d", ch - 24
         else:
             logger.error(f"There is not channel {ch} in device {self.name}!")
-            return False
+            return None
         return asw[port][ch-1]
 
     async def set_channel(
@@ -179,12 +179,12 @@ class SwitchBoxRelay(Relay):
                 * 2 → Full power (~24 V)
             keep_port_status (str, optional):
                 If true (default), preserves the state of other channels
-                in the same port.
+                in the same port (module).
                 If false, all other channels in the port are reset to 0.
             switch_to_low_after (float, optional):
                 If >0 and value=2, automatically switches the channel
                 to 1 (half power) after the given delay in seconds.
-                Useful to reduce heat dissipation.
+                Useful to reduce heat generation.
                 Default = -1 (disabled).
 
         Returns:
@@ -197,14 +197,14 @@ class SwitchBoxRelay(Relay):
             switch_to_low_after=switch_to_low_after
         )
 
-    async def get_all(self) -> dict[str, list[int]]:
+    async def read_channels_modules(self) -> dict[str, list[int]]:
         """
-        Query the relay states of all channels.
+        Query the relay states of all channels in modules.
 
         Returns:
-            dict[str, list[int]]: A dictionary mapping port IDs ("a", "b", "c", "d")
+            dict[str, list[int]]: A dictionary mapping port modules IDs ("a", "b", "c", "d")
             to lists of 8 integers each.
-            Each integer is the channel state:
+            Each integer represents the current state of one of the 8 channels:
                 * 0 → OFF
                 * 1 → Half power (~12 V)
                 * 2 → Full power (~24 V)
@@ -219,14 +219,14 @@ class SwitchBoxRelay(Relay):
         """
         return await self.hw_device.get_relay_channels()
 
-    async def set_ports(
+    async def set_port_module(
             self,
             values: str,
             switch_to_low_after: float = -1,
             port: str = "a"
     ):
         """
-        Set the relay states of all 8 channels in a port.
+        Set the relay states of all 8 channels in a port module.
 
         Channel states:
             * 0 → OFF

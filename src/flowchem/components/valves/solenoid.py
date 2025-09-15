@@ -30,13 +30,13 @@ class SolenoidValve(FlowchemComponent):
         super().__init__(name, hw_device)
         self.add_api_route("/open", self.open, methods=["PUT"])
         self.add_api_route("/close", self.close, methods=["PUT"])
-        self.add_api_route("/status", self.status, methods=["GET"])
+        self.add_api_route("/is_open", self.is_open, methods=["GET"])
 
     async def open(self):
         """
         Open the solenoid valve.
 
-        This method energizes the solenoid, switching the valve to the
+        This method switching the valve to the
         "open" state, allowing flow through the channel.
         """
         ...
@@ -45,12 +45,12 @@ class SolenoidValve(FlowchemComponent):
         """
         Close the solenoid valve.
 
-        This method de-energizes the solenoid, switching the valve to
+        This method switching the valve to
         the "closed" state, stopping flow through the channel.
         """
         ...
 
-    async def status(self) -> bool:
+    async def is_open(self) -> bool:
         """
         Get the current valve status.
 
@@ -62,7 +62,7 @@ class SolenoidValve(FlowchemComponent):
         return True
 
 
-class SolenoidValve2way(SolenoidValve):
+class SolenoidValve2Way(SolenoidValve):
     """
     A 2-way solenoid valve.
 

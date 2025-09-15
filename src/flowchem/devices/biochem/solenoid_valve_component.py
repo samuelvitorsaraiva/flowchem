@@ -4,7 +4,7 @@ from flowchem.components.valves.solenoid import SolenoidValve
 from flowchem.devices.flowchem_device import FlowchemDevice
 
 
-class SolenoidValveComponent(SolenoidValve):
+class BioChemSolenoidValveComponent(SolenoidValve):
     """
     Extension of the SolenoidValve class with low-power mode support.
 
@@ -47,8 +47,8 @@ class SolenoidValveComponent(SolenoidValve):
         """
         Open the solenoid valve.
 
-        This method energizes the solenoid, switching the valve to the
-        "open" state, allowing flow through the channel.
+        This method energises the solenoid if it is normally closed, or de-energises it if it is normally open, switching the valve to the
+        'open' state, which allows flow through the channel.
         """
         return await self.hw_device.change_status(True, self.low_power_after)  # type:ignore[attr-defined]
 
@@ -61,7 +61,7 @@ class SolenoidValveComponent(SolenoidValve):
         """
         return await self.hw_device.change_status(False, self.low_power_after)  # type:ignore[attr-defined]
 
-    async def status(self) -> bool:
+    async def is_open(self) -> bool:
         """
         Get the current valve status.
 
@@ -70,4 +70,4 @@ class SolenoidValveComponent(SolenoidValve):
         bool
             `True` if the valve is open, `False` if closed.
         """
-        return await self.hw_device.status()  # type:ignore[attr-defined]
+        return await self.hw_device.is_open()  # type:ignore[attr-defined]

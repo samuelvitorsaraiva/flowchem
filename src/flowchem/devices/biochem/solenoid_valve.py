@@ -11,10 +11,10 @@ Typical usage
 -------------
 1) Ensure a `SwitchBoxMPIKG` instance is created and registered (via
    `SwitchBoxMPIKG.from_config(...)` or equivalent) so it appears in
-   `SwitchBoxMPIKG.INSTANCES` under the given `support` name.
+   `SwitchBoxMPIKG.INSTANCES` under the given `support_platform` name.
 2) Initialize the valve device (`await valve.initialize()`).
 3) Switch the valve state with `await valve.change_status(True/False, ...)`.
-4) Query valve status with `await valve.status()`.
+4) Query valve status with `await valve.is_open()`.
 
 Notes
 -----
@@ -27,7 +27,7 @@ from __future__ import annotations
 from flowchem.devices.flowchem_device import FlowchemDevice
 from flowchem.components.device_info import DeviceInfo
 from flowchem.utils.people import samuel_saraiva
-from .solenoid_valve_component import SolenoidValveComponent
+from .solenoid_valve_component import BioChemSolenoidValveComponent
 
 from flowchem.devices.custom.mpikg_switch_box import SwitchBoxMPIKG
 
@@ -40,7 +40,7 @@ class SolenoidException(Exception):
 
 
 class InvalidConfiguration(SolenoidException):
-    """Raised when the target switch-box support cannot be found or initialized."""
+    """Raised when the target switch-box support_platform cannot be found or initialized."""
     pass
 
 
@@ -49,7 +49,7 @@ class BioChemSolenoidValve(FlowchemDevice):
     Flowchem device that controls a single solenoid valve via an MPIKG switch box.
 
     This device:
-      - waits for a `SwitchBoxMPIKG` instance with a matching `support` name to be
+      - waits for a `SwitchBoxMPIKG` instance with a matching `support_platform` name to be
         available,
       - registers a `SolenoidValve` component under the device (exposing the
         standard `/open`, `/close`, `/status` HTTP routes),
@@ -77,11 +77,11 @@ class BioChemSolenoidValve(FlowchemDevice):
         The bound I/O board instance once initialization completes.
     """
 
-    def __init__(self, name: str, support: str, channel: int, normally_open: bool = True):
+    def __init__(self, name: str, support_platform: str, channel: int, normally_open: bool = True):
 
         super().__init__(name)
 
-        self.support = support
+        self.support_platform = support_platform
 
         self.channel = channel
 
@@ -99,7 +99,7 @@ class BioChemSolenoidValve(FlowchemDevice):
         """
         Bind to the configured `SwitchBoxMPIKG` instance and register the valve component.
 
-        The method polls `SwitchBoxMPIKG.INSTANCES` for the given `support` name,
+        The method polls `SwitchBoxMPIKG.INSTANCES` for the given `support_platform` name,
         sleeping 0.5 s between attempts. If the instance does not appear after a
         few seconds, an :class:`InvalidConfiguration` is raised.
 
@@ -110,21 +110,21 @@ class BioChemSolenoidValve(FlowchemDevice):
         """
 
         n = 0
-        while self.support not in SwitchBoxMPIKG.INSTANCES:
+        while self.support_platform not in SwitchBoxMPIKG.INSTANCES:
             await asyncio.sleep(0.5)
             n += 1
             if n > 6:
                 raise InvalidConfiguration(
-                    f"The electronic relay support '{self.support}' was not declared or initialized. "
-                    "The valve cannot be initialized without a support "
+                    f"The electronic relay support_platform '{self.support_platform}' was not declared or initialized. "
+                    "The valve cannot be initialized without a support_platform "
                     "(Please add SwitchBoxMPIKG in the configuration file!)."
                 )
 
-        self._io = SwitchBoxMPIKG.INSTANCES[self.support]
+        self._io = SwitchBoxMPIKG.INSTANCES[self.support_platform]
         # Register the standard SolenoidValve component/API on this device
-        self.components.append(SolenoidValveComponent("valve", self))
-        conf_valve = "normally open" if self.normally_open else "normally close"
-        logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support}' channel {self.channel}!")
+        self.components.append(BioChemSolenoidValveComponent("valve", self))
+        conf_valve = "normally open" if self.normally_open else "normally closed"
+        logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support_platform}' channel {self.channel}!")
 
     async def change_status(self, value: bool, switch_to_low_after=-1):
         """
@@ -134,8 +134,8 @@ class BioChemSolenoidValve(FlowchemDevice):
         ----------
         value : bool
             Target state in flow terms:
-              - True  -> valve OPEN
-              - False -> valve CLOSED
+              - True  -> Open valve
+              - False -> Close valve
             (The underlying relay actuation depends on `normally_open`.)
         switch_to_low_after : int | float, default -1
             Seconds after which the controller should reduce coil power to a
@@ -165,22 +165,21 @@ class BioChemSolenoidValve(FlowchemDevice):
                 switch_to_low_after=switch_to_low_after
             )
 
-    async def status(self) -> bool:
+    async def is_open(self) -> bool:
         """
         Read the current valve status from the switch box.
 
         Returns
         -------
         bool
-            True if the relay channel is energized (value > 0), False otherwise.
-            Interpreting this as OPEN/CLOSED depends on `normally_open`.
+            True if the relay channel is open, False otherwise.
 
         Notes
         -----
         The MPIKG board exposes channels grouped by ports (a, b, c, d) in blocks
         of 8. This method maps `self.channel` (1–32) to the appropriate port and
         index, then reads `get_relay_channels()` and returns whether the channel
-        is active.
+        is active and according to valve set up infer if the valve is open or not.
         """
         status = await self._io.get_relay_channels()
         port, ch = "a", self.channel
@@ -190,7 +189,7 @@ class BioChemSolenoidValve(FlowchemDevice):
             port, ch = "c", self.channel - 16
         elif 24 < self.channel <= 32:
             port, ch = "d", self.channel - 24
-        return status[port][ch - 1] > 0
+        return status[port][ch - 1] > 0 and not self.normally_open or status[port][ch - 1] == 0 and self.normally_open
 
 
 if __name__ == "__main__":
@@ -203,7 +202,7 @@ if __name__ == "__main__":
         await valve.initialize()
         await valve.change_status(True, switch_to_low_after=1)
         await asyncio.sleep(1)
-        result = await valve.status()
+        result = await valve.is_open()
         print(result)
 
     asyncio.run(main())

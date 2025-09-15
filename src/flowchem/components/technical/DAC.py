@@ -4,12 +4,12 @@ from flowchem.components.technical.power import PowerSwitch
 from flowchem.devices.flowchem_device import FlowchemDevice
 
 
-class DigitalAnalogSignal(PowerSwitch):
+class DigitalAnalogConverter(PowerSwitch):
     """
-    Digital-to-Analog Signal component.
+    Digital-to-Analog Converter component.
 
-    This class represents a device that converts a digital command into an
-    analog output signal (e.g., voltage level, current, or other continuous
+    This class represents a device that converts a digital values into an
+    analog output values (e.g., voltage level, current, or other continuous
     value). It inherits from ``PowerSwitch`` to provide a standard interface
     within the Flowchem framework.
 
@@ -20,7 +20,7 @@ class DigitalAnalogSignal(PowerSwitch):
     """
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
         """
-        Initialize a DigitalAnalogSignal component.
+        Initialize a DigitalAnalogConverter component.
 
         Args:
             name: Human-readable identifier for this component.

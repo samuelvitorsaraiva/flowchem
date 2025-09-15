@@ -45,7 +45,7 @@ class Relay(PowerSwitch):
             channel: Identifier of the relay channel to be switched.
 
         Returns:
-            True if the channel was successfully switched on.
+            True if the channel was successfully switched on, False otherwise
 
         Ontology:
             This method corresponds to a ``saref:OnCommand`` in the
@@ -61,7 +61,7 @@ class Relay(PowerSwitch):
             channel: Identifier of the relay channel to be switched.
 
         Returns:
-            True if the channel was successfully switched off.
+            True if the channel was successfully switched off, False otherwise
 
         Ontology:
             This method corresponds to a ``saref:OffCommand`` in the

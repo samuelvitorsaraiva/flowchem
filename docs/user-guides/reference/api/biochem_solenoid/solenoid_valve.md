@@ -36,8 +36,8 @@ ComponentInfo
 **Summary:** Open
 **Description:** Open the solenoid valve.
 
-This method energizes the solenoid, switching the valve to the
-"open" state, allowing flow through the channel.
+This method energises the solenoid if it is normally closed, or de-energises it if it is normally open, switching the valve to the
+'open' state, which allows flow through the channel.
 **Tags:** valve, valve
 **Operation ID:** `open_valve_valve_open_put`
 
@@ -61,9 +61,9 @@ the "closed" state, stopping flow through the channel.
 
 ---
 
-### `GET /valve/valve/status`
+### `GET /valve/valve/is_open`
 
-**Summary:** Status
+**Summary:** Is Open
 **Description:** Get the current valve status.
 
 Returns
@@ -71,7 +71,7 @@ Returns
 bool
     `True` if the valve is open, `False` if closed.
 **Tags:** valve, valve
-**Operation ID:** `status_valve_valve_status_get`
+**Operation ID:** `is_open_valve_valve_is_open_get`
 
 **Responses:**
 - `200`: Successful Response
@@ -105,5 +105,55 @@ None
 **Responses:**
 - `200`: Successful Response
 - `422`: Validation Error
+
+---
+
+## Components
+
+### `ComponentInfo` (object)
+
+**Description:** Metadata associated with flowchem components.
+
+**Properties:**
+- `name`: string (default: ``)
+- `parent_device`: string (default: ``)
+- `type`: string (default: ``)
+- `corresponding_class`: array (default: `[]`)
+- `owl_subclass_of`: array (default: `['http://purl.obolibrary.org/obo/OBI_0000968']`)
+
+---
+
+### `DeviceInfo` (object)
+
+**Description:** Metadata associated with hardware devices.
+
+**Properties:**
+- `manufacturer`: string (default: ``)
+- `model`: string (default: ``)
+- `version`: string (default: ``)
+- `serial_number`: object (default: `unknown`)
+- `components`: object (default: `{}`)
+- `backend`: string (default: `flowchem v. 1.1.0.post1`)
+- `authors`: array (default: `[]`)
+- `additional_info`: object (default: `{}`)
+
+---
+
+### `HTTPValidationError` (object)
+
+
+**Properties:**
+- `detail`: array
+
+---
+
+### `ValidationError` (object)
+
+**Required:** loc, msg, type
+
+**Properties:**
+- `loc`: array
+- `msg`: string
+- `type`: string
 
 ---

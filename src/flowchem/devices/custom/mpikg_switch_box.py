@@ -502,7 +502,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
 
     async def get_adc(self):
         """
-        Read all ADC (Analog Digital Channels) channels.
+            Read all ADC (Analog Digital Converter) channels.
 
         Returns:
             dict[str, float]: Mapping of channel IDs (e.g. "ADC1", "ADC2") to measured
@@ -571,8 +571,11 @@ if __name__ == "__main__":
         await box.set_relay_port(values=[2, 0, 0, 0, 1, 1, 1, 0], switch_to_low_after=2, port="b")
         await box.set_relay_single_channel(channel=12, value=2, switch_to_low_after=2)
         result = await box.get_adc()
+        print(result)
         await box.set_dac(channel=1, volts=3)
         result = await box.get_dac(channel=1)
+        print(result)
+        result = await box.get_relay_channels()
         print(result)
 
     asyncio.run(main())

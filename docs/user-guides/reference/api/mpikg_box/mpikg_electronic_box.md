@@ -1,18 +1,18 @@
 ## Endpoints
 
-### `GET /my-box/`
+### `GET /mybox/`
 
 **Summary:** Get Device Info
 **Description:** 
-**Tags:** my-box
-**Operation ID:** `get_device_info_my_box__get`
+**Tags:** mybox
+**Operation ID:** `get_device_info_mybox__get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `GET /my-box/adc/`
+### `GET /mybox/adc/`
 
 **Summary:** Get Component Info
 **Description:** Retrieve the component's metadata.
@@ -23,23 +23,23 @@ Returns:
 --------
 ComponentInfo
     Metadata about the component.
-**Tags:** my-box, my-box
-**Operation ID:** `get_component_info_my_box_adc__get`
+**Tags:** mybox, mybox
+**Operation ID:** `get_component_info_mybox_adc__get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `GET /my-box/adc/channel`
+### `GET /mybox/adc/read`
 
-**Summary:** Read Channel
-**Description:** Read ADC (Analog  Digital Channels) channel (1 to 8).
+**Summary:** Read
+**Description:** Read ADC (Analog-to-Digital Converter) channel (1 to 8).
 
 Returns:
-    voltage value.
-**Tags:** my-box, my-box
-**Operation ID:** `read_channel_my_box_adc_channel_get`
+    voltage value in volts.
+**Tags:** mybox, mybox
+**Operation ID:** `read_mybox_adc_read_get`
 
 **Query Parameters:**
 - `channel` (string, required, default = ``)
@@ -50,23 +50,23 @@ Returns:
 
 ---
 
-### `GET /my-box/adc/read_all`
+### `GET /mybox/adc/read_all`
 
 **Summary:** Read All
-**Description:** Read all ADC (Analog  Digital Channels) channels.
+**Description:** Read all ADC (Analog-to-Digital Converter) channels.
 
 Returns:
     dict[str, float]: Mapping of channel IDs (e.g. "ADC1", "ADC2") to measured
-    voltage values.
-**Tags:** my-box, my-box
-**Operation ID:** `read_all_my_box_adc_read_all_get`
+    voltage values in volts.
+**Tags:** mybox, mybox
+**Operation ID:** `read_all_mybox_adc_read_all_get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `GET /my-box/dac/`
+### `GET /mybox/dac/`
 
 **Summary:** Get Component Info
 **Description:** Retrieve the component's metadata.
@@ -77,50 +77,51 @@ Returns:
 --------
 ComponentInfo
     Metadata about the component.
-**Tags:** my-box, my-box
-**Operation ID:** `get_component_info_my_box_dac__get`
+**Tags:** mybox, mybox
+**Operation ID:** `get_component_info_mybox_dac__get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `GET /my-box/dac/channel`
+### `PUT /mybox/dac/power-on`
 
-**Summary:** Read Channel
-**Description:** Read the DAC output of a channel.
+**Summary:** Power On
+**Description:** Turn power on.
+**Tags:** mybox, mybox
+**Operation ID:** `power_on_mybox_dac_power_on_put`
+
+**Responses:**
+- `200`: Successful Response
+
+---
+
+### `PUT /mybox/dac/power-off`
+
+**Summary:** Power Off
+**Description:** Turn off power.
+**Tags:** mybox, mybox
+**Operation ID:** `power_off_mybox_dac_power_off_put`
+
+**Responses:**
+- `200`: Successful Response
+
+---
+
+### `PUT /mybox/dac/channel`
+
+**Summary:** Set Channel
+**Description:** Set DAC output voltage.
 
 Args:
     channel (str): DAC channel index (1 or 2).
-
-Returns:
-    float: DAC output in volts.
-**Tags:** my-box, my-box
-**Operation ID:** `read_channel_my_box_dac_channel_get`
-
-**Query Parameters:**
-- `channel` (string, required, default = ``)
-
-**Responses:**
-- `200`: Successful Response
-- `422`: Validation Error
-
----
-
-### `PUT /my-box/dac/channel`
-
-**Summary:** Set Channel
-**Description:** "
-Set DAC output voltage.
-
-Args:
-    channel (int, optional): DAC channel index (1 or 2).
-    volts (float, optional): Target voltage (0 to 5 V).
+    value (float): Target voltage (0 to 5 V).
 
 Returns:
     bool: True if the command succeeded, False otherwise.
-**Tags:** my-box, my-box
-**Operation ID:** `set_channel_my_box_dac_channel_put`
+**Tags:** mybox, mybox
+**Operation ID:** `set_channel_mybox_dac_channel_put`
 
 **Query Parameters:**
 - `channel` (string, required, default = ``)
@@ -132,7 +133,29 @@ Returns:
 
 ---
 
-### `GET /my-box/hele/`
+### `GET /mybox/dac/channel`
+
+**Summary:** Read Channel
+**Description:** Read the DAC output of a channel.
+
+Args:
+    channel (str): DAC channel index (1 or 2).
+
+Returns:
+    float: DAC output in volts.
+**Tags:** mybox, mybox
+**Operation ID:** `read_channel_mybox_dac_channel_get`
+
+**Query Parameters:**
+- `channel` (string, required, default = ``)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
+
+---
+
+### `GET /mybox/relay/`
 
 **Summary:** Get Component Info
 **Description:** Retrieve the component's metadata.
@@ -143,17 +166,61 @@ Returns:
 --------
 ComponentInfo
     Metadata about the component.
-**Tags:** my-box, my-box
-**Operation ID:** `get_component_info_my_box_hele__get`
+**Tags:** mybox, mybox
+**Operation ID:** `get_component_info_mybox_relay__get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `GET /my-box/hele/channel`
+### `PUT /mybox/relay/power-on`
 
-**Summary:** Read Channel
+**Summary:** Power On
+**Description:** Set the state ON of a single relay channel.
+
+Args:
+    channel (str): Relay channel index (1–32).
+
+Returns:
+    bool: True if the device acknowledged the command, False otherwise.
+**Tags:** mybox, mybox
+**Operation ID:** `power_on_mybox_relay_power_on_put`
+
+**Query Parameters:**
+- `channel` (string, required, default = ``)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
+
+---
+
+### `PUT /mybox/relay/power-off`
+
+**Summary:** Power Off
+**Description:** Set the state OFF of a single relay channel.
+
+Args:
+    channel (str): Relay channel index (1–32).
+
+Returns:
+    bool: True if the device acknowledged the command, False otherwise.
+**Tags:** mybox, mybox
+**Operation ID:** `power_off_mybox_relay_power_off_put`
+
+**Query Parameters:**
+- `channel` (string, required, default = ``)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
+
+---
+
+### `GET /mybox/relay/channel_setpoint`
+
+**Summary:** Read Channel Setpoint
 **Description:** Read the current relay state of a single channel.
 
 Each channel corresponds to one relay (1–32), organized in four ports:
@@ -173,9 +240,9 @@ Args:
 Returns:
     int | bool:
         - 0, 1, or 2 → valid relay state.
-        - False → if the channel index is invalid.
-**Tags:** my-box, my-box
-**Operation ID:** `read_channel_my_box_hele_channel_get`
+        - None → if the channel index is invalid.
+**Tags:** mybox, mybox
+**Operation ID:** `read_channel_setpoint_mybox_relay_channel_setpoint_get`
 
 **Query Parameters:**
 - `channel` (string, required, default = ``)
@@ -186,7 +253,7 @@ Returns:
 
 ---
 
-### `PUT /my-box/hele/channel`
+### `PUT /mybox/relay/channel`
 
 **Summary:** Set Channel
 **Description:** Set the state of a single relay channel.
@@ -199,18 +266,18 @@ Args:
         * 2 → Full power (~24 V)
     keep_port_status (str, optional):
         If true (default), preserves the state of other channels
-        in the same port.
+        in the same port (module).
         If false, all other channels in the port are reset to 0.
     switch_to_low_after (float, optional):
         If >0 and value=2, automatically switches the channel
         to 1 (half power) after the given delay in seconds.
-        Useful to reduce heat dissipation.
+        Useful to reduce heat generation.
         Default = -1 (disabled).
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
-**Tags:** my-box, my-box
-**Operation ID:** `set_channel_my_box_hele_channel_put`
+**Tags:** mybox, mybox
+**Operation ID:** `set_channel_mybox_relay_channel_put`
 
 **Query Parameters:**
 - `channel` (string, required, default = ``)
@@ -224,15 +291,15 @@ Returns:
 
 ---
 
-### `GET /my-box/hele/read_all`
+### `GET /mybox/relay/read_channels_modules`
 
-**Summary:** Get All
-**Description:** Query the relay states of all channels.
+**Summary:** Read Channels Modules
+**Description:** Query the relay states of all channels in modules.
 
 Returns:
-    dict[str, list[int]]: A dictionary mapping port IDs ("a", "b", "c", "d")
+    dict[str, list[int]]: A dictionary mapping port modules IDs ("a", "b", "c", "d")
     to lists of 8 integers each.
-    Each integer is the channel state:
+    Each integer represents the current state of one of the 8 channels:
         * 0 → OFF
         * 1 → Half power (~12 V)
         * 2 → Full power (~24 V)
@@ -244,18 +311,18 @@ Example:
         "c": [...],
         "d": [...]
     }
-**Tags:** my-box, my-box
-**Operation ID:** `get_all_my_box_hele_read_all_get`
+**Tags:** mybox, mybox
+**Operation ID:** `read_channels_modules_mybox_relay_read_channels_modules_get`
 
 **Responses:**
 - `200`: Successful Response
 
 ---
 
-### `PUT /my-box/hele/port`
+### `PUT /mybox/relay/port_module`
 
-**Summary:** Set Ports
-**Description:** Set the relay states of all 8 channels in a port.
+**Summary:** Set Port Module
+**Description:** Set the relay states of all 8 channels in a port module.
 
 Channel states:
     * 0 → OFF
@@ -276,8 +343,8 @@ Args:
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
-**Tags:** my-box, my-box
-**Operation ID:** `set_ports_my_box_hele_port_put`
+**Tags:** mybox, mybox
+**Operation ID:** `set_port_module_mybox_relay_port_module_put`
 
 **Query Parameters:**
 - `values` (string, required, default = ``)
@@ -315,7 +382,7 @@ Returns:
 - `version`: string (default: ``)
 - `serial_number`: object (default: `unknown`)
 - `components`: object (default: `{}`)
-- `backend`: string (default: `flowchem v. 1.0.0a3`)
+- `backend`: string (default: `flowchem v. 1.1.0.post1`)
 - `authors`: array (default: `[]`)
 - `additional_info`: object (default: `{}`)
 

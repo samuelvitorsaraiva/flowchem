@@ -4,9 +4,9 @@ from flowchem.components.flowchem_component import FlowchemComponent
 from flowchem.devices.flowchem_device import FlowchemDevice
 
 
-class AnalogDigitalSignal(FlowchemComponent):
+class AnalogDigitalConverter(FlowchemComponent):
     """
-    Component representing an analog/digital signal in a Flowchem device.
+    Component representing an analog/digital converter in a Flowchem device.
 
     This component provides a simple API route (`/read`) to obtain the current
     value of a signal, abstracting the details of the underlying hardware.
