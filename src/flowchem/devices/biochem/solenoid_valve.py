@@ -194,7 +194,7 @@ class BioChemSolenoidValve(FlowchemDevice):
 
 if __name__ == "__main__":
     box = SwitchBoxMPIKG.from_config(port="COM8", name="box")
-    valve = BioChemSolenoidValve(name="", support="box", channel=1)
+    valve = BioChemSolenoidValve(name="", support_platform="box", channel=1)
     async def main():
         """Test function."""
         await box.initialize()
