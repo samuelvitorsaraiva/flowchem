@@ -126,42 +126,63 @@ class BioChemSolenoidValve(FlowchemDevice):
         conf_valve = "normally open" if self.normally_open else "normally closed"
         logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support_platform}' channel {self.channel}!")
 
-    async def change_status(self, value: bool, switch_to_low_after=-1):
+    async def open(self, switch_to_low_after=-1):
         """
-        Change the valve state and optionally enter low-power mode.
+        Open valve and optionally enter low-power mode.
 
         Parameters
         ----------
-        value : bool
-            Target state in flow terms:
-              - True  -> Open valve
-              - False -> Close valve
-            (The underlying relay actuation depends on `normally_open`.)
         switch_to_low_after : int | float, default -1
             Seconds after which the controller should reduce coil power to a
             low-power holding level. Use `-1` to keep full power (no low-power
             transition).
 
-        Returns
-        -------
-        Any
-            The return value of `SwitchBoxMPIKG.set_relay_single_channel(...)`.
-
         Notes
         -----
         - When `normally_open` is True, opening the valve requires no power
-          (relay value 0) and closing energizes the coil (relay value 2).
+          (relay value 0) and not energizes the coil.
         - When `normally_open` is False, the mapping is inverted.
         """
-        if (self.normally_open and value) or (not self.normally_open and not value):
+        if self.normally_open:
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=0,
+                switch_to_low_after=switch_to_low_after
             )
         else:
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=2,
+                switch_to_low_after=switch_to_low_after
+            )
+
+    async def close(self, switch_to_low_after=-1):
+        """
+        Close valve and optionally enter low-power mode.
+
+        Parameters
+        ----------
+        switch_to_low_after : int | float, default -1
+            Seconds after which the controller should reduce coil power to a
+            low-power holding level. Use `-1` to keep full power (no low-power
+            transition).
+
+        Notes
+        -----
+        - When `normally_open` is True, close the valve requires power
+          (relay value 2) and energizes the coil.
+        - When `normally_open` is False, the mapping is inverted.
+        """
+        if self.normally_open:
+            return await self._io.set_relay_single_channel(
+                channel=self.channel,
+                value=2,
+                switch_to_low_after=switch_to_low_after
+            )
+        else:
+            return await self._io.set_relay_single_channel(
+                channel=self.channel,
+                value=0,
                 switch_to_low_after=switch_to_low_after
             )
 
@@ -200,7 +221,7 @@ if __name__ == "__main__":
         await box.initialize()
         print(box.device_info.version)
         await valve.initialize()
-        await valve.change_status(True, switch_to_low_after=1)
+        await valve.open(switch_to_low_after=1)
         await asyncio.sleep(1)
         result = await valve.is_open()
         print(result)
