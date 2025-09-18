@@ -47,7 +47,7 @@ class DigitalAnalogConverter(PowerSwitch):
         """
         return -1
 
-    async def set_channel(self, channel: str, value: float) -> bool:
+    async def set_channel(self, channel: str = "1", value: str = "0 V") -> bool:
         """
         Set the analog output value of a channel.
 

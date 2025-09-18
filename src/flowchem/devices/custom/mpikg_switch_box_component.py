@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from numpy.random import vonmises
-
+from pint.errors import UndefinedUnitError, DimensionalityError
 from flowchem.components.technical.ADC import AnalogDigitalConverter
 from flowchem.components.technical.DAC import DigitalAnalogConverter
 from flowchem.components.technical.relay import Relay
@@ -62,11 +61,13 @@ class SwitchBoxDAC(DigitalAnalogConverter):
             return False
         try:
             volts = ureg(value)
-        except:
-            logger.error(f"Invalid DAC value '{value}' for channel {channel}: unable to parse units.")
+        except (UndefinedUnitError, DimensionalityError, Exception) as e:
+            logger.error(
+                f"Invalid DAC value '{value}' for channel {channel}: {e}"
+            )
             return False
-        return await self.hw_device.set_dac(
-            channel=int(channel), volts=volts
+        return await self.hw_device.set_dac(  # type:ignore[call-arg]
+            channel=int(channel), value=volts
         )
 
 
