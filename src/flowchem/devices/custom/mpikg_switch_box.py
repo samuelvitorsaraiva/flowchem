@@ -560,22 +560,3 @@ class SwitchBoxMPIKG(FlowchemDevice):
             )
         )
         return status.startswith("OK")
-
-
-if __name__ == "__main__":
-    box = SwitchBoxMPIKG.from_config(port="COM8")
-    async def main():
-        """Test function."""
-        await box.initialize()
-        print(box.device_info.version)
-        await box.set_relay_port(values=[2, 0, 0, 0, 1, 1, 1, 0], switch_to_low_after=2, port="b")
-        await box.set_relay_single_channel(channel=12, value=2, switch_to_low_after=2)
-        result = await box.get_adc()
-        print(result)
-        await box.set_dac(channel=1, volts=3)
-        result = await box.get_dac(channel=1)
-        print(result)
-        result = await box.get_relay_channels()
-        print(result)
-
-    asyncio.run(main())
