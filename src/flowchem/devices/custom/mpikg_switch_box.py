@@ -93,6 +93,8 @@ Get version and help
 """
 from __future__ import annotations
 
+from pint.registry import Quantity
+
 from flowchem.devices.custom.mpikg_switch_box_component import (
     SwitchBoxADC, SwitchBoxRelay, SwitchBoxDAC
 )
@@ -105,6 +107,7 @@ from loguru import logger
 from enum import StrEnum
 import aioserial
 import asyncio
+
 
 BEFE_RELE_BITS = 16
 ADC_VOLTS = 5
@@ -540,17 +543,27 @@ class SwitchBoxMPIKG(FlowchemDevice):
         if volts:
             return bit / DAC_BITS * DAC_VOLTS
 
-    async def set_dac(self, channel: int = 1, volts: float = 5):
+    async def set_dac(self, value: Quantity, channel: int = 1) -> bool:
         """
-        Set DAC output voltage.
+        Set the DAC output voltage for a given channel.
 
         Args:
-            channel (int, optional): DAC channel index (1 or 2). Default = 1.
-            volts (float, optional): Target voltage. Default = 5 V.
+            value (Quantity): Target voltage as a Pint Quantity (e.g., `ureg("2.5 V")`).
+            channel (int, optional): DAC channel index (1 or 2). Defaults to 1.
 
         Returns:
-            bool: True if the command succeeded, False otherwise.
+            bool:
+                - True if the voltage command was successfully sent and acknowledged by the device.
+                - False if the voltage is outside the valid range or if the device did not return "OK".
+
+        Notes:
+            - The voltage is converted to volts and must be strictly between 0 V and 5 V.
+            - If the voltage is out of range, an error is logged.
         """
+        volts = value.to('V').magnitude
+        if not 0 < volts < 5:
+            logger.error("The value set in the DAC should be between 0 and 5 V!")
+            return False
         status = await self.box_io.write_and_read_reply(
             command=SwitchBoxGeneralCommand(
                 channel=channel,

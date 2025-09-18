@@ -112,20 +112,30 @@ ComponentInfo
 ### `PUT /mybox/dac/channel`
 
 **Summary:** Set Channel
-**Description:** Set DAC output voltage.
+**Description:** Set the DAC output voltage for a given channel.
 
 Args:
-    channel (str): DAC channel index (1 or 2).
-    value (float): Target voltage (0 to 5 V).
+    channel (str, optional): DAC channel index. Must be a digit string
+        (e.g., "1", "2"). Defaults to "1".
+    value (str, optional): Target voltage with unit, expressed as a string
+        parsable by the unit registry (e.g., "2.5 V", "500 mV").
+        Defaults to "0 V".
 
 Returns:
-    bool: True if the command succeeded, False otherwise.
+    bool:
+        - True if the voltage command was successfully sent to the hardware.
+        - False if the channel argument is invalid or if the value cannot be parsed.
+
+Notes:
+    - The channel must be convertible to an integer.
+    - The voltage string is parsed using the unit registry (`ureg`).
+    - Any parsing or hardware errors are logged via `logger`.
 **Tags:** mybox, mybox
 **Operation ID:** `set_channel_mybox_dac_channel_put`
 
 **Query Parameters:**
-- `channel` (string, required, default = ``)
-- `value` (number, required, default = ``)
+- `channel` (string, optional, default = `1`)
+- `value` (string, optional, default = `0 V`)
 
 **Responses:**
 - `200`: Successful Response

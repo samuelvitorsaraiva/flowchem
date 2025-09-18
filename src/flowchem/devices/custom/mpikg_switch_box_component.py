@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from numpy.random import vonmises
+
 from flowchem.components.technical.ADC import AnalogDigitalConverter
 from flowchem.components.technical.DAC import DigitalAnalogConverter
 from flowchem.components.technical.relay import Relay
+from flowchem import ureg
 from loguru import logger
 
 if TYPE_CHECKING:
@@ -33,19 +36,37 @@ class SwitchBoxDAC(DigitalAnalogConverter):
         """
         return await self.hw_device.get_dac(channel=int(channel), volts=True)
 
-    async def set_channel(self, channel: str, value: float) -> bool:
+    async def set_channel(self, channel: str = "1", value: str = "0 V") -> bool:
         """
-        Set DAC output voltage.
+        Set the DAC output voltage for a given channel.
 
         Args:
-            channel (str): DAC channel index (1 or 2).
-            value (float): Target voltage (0 to 5 V).
+            channel (str, optional): DAC channel index. Must be a digit string
+                (e.g., "1", "2"). Defaults to "1".
+            value (str, optional): Target voltage with unit, expressed as a string
+                parsable by the unit registry (e.g., "2.5 V", "500 mV").
+                Defaults to "0 V".
 
         Returns:
-            bool: True if the command succeeded, False otherwise.
+            bool:
+                - True if the voltage command was successfully sent to the hardware.
+                - False if the channel argument is invalid or if the value cannot be parsed.
+
+        Notes:
+            - The channel must be convertible to an integer.
+            - The voltage string is parsed using the unit registry (`ureg`).
+            - Any parsing or hardware errors are logged via `logger`.
         """
+        if not channel.isdigit():
+            logger.error("The argument channel of the DAC should be a digit (1, 2, ...)")
+            return False
+        try:
+            volts = ureg(value)
+        except:
+            logger.error(f"Invalid DAC value '{value}' for channel {channel}: unable to parse units.")
+            return False
         return await self.hw_device.set_dac(
-            channel=int(channel), volts=value
+            channel=int(channel), volts=volts
         )
 
 
