@@ -12,11 +12,6 @@ class DigitalAnalogConverter(PowerSwitch):
     analog output values (e.g., voltage level, current, or other continuous
     value). It inherits from ``PowerSwitch`` to provide a standard interface
     within the Flowchem framework.
-
-    Ontology:
-        Subclass of ``sosa:Actuator`` —
-        An actuator is a device that is used by, or implements, an Actuation
-        (W3C SOSA/SSN Ontology: http://www.w3.org/ns/sosa/Actuator).
     """
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
         """
@@ -32,11 +27,6 @@ class DigitalAnalogConverter(PowerSwitch):
         super().__init__(name, hw_device)
         self.add_api_route("/channel", self.set_channel, methods=["PUT"])
         self.add_api_route("/channel", self.read_channel, methods=["GET"])
-
-        # Ontology: Actuator - A device that is used by, or implements, an (Actuation).
-        self.component_info.owl_subclass_of.append(
-            "http://www.w3.org/ns/sosa/Actuator",
-        )
 
     async def read_channel(self, channel: str) -> float:
         """
@@ -57,9 +47,5 @@ class DigitalAnalogConverter(PowerSwitch):
 
         Returns:
             True if the value was accepted and applied successfully.
-
-        Ontology:
-            This operation corresponds to a ``sosa:Actuation`` event, where
-            the actuator modifies a property in the environment.
         """
         return True
