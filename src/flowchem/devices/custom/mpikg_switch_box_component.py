@@ -142,7 +142,7 @@ class SwitchBoxRelay(MultiChannelRelay):
 
         self.hw_device: SwitchBoxMPIKG
 
-        self.identify = identify # Port identifier ("a", "b", "c", or "d")
+        self.identify = identify  # Port identifier ("a", "b", "c", or "d")
 
     async def power_on(self, channel: str) -> bool:  # type:ignore[override]
         """
