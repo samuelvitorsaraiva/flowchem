@@ -31,17 +31,13 @@ class AnalogDigitalConverter(FlowchemComponent):
             "http://www.w3.org/ns/sosa/Observation",
         )
 
-    async def read(self, **kwargs) -> float:
+    async def read(self) -> float:
         """
         Read the current value of the signal.
 
-        Args:
-            **kwargs: Additional keyword arguments for future extension.
-
         Returns:
             float: The measured or estimated signal value.
-                   Currently a placeholder (`0.0`).
         """
-        return 0.0
+        raise NotImplementedError
 
 

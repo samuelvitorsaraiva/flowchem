@@ -338,7 +338,10 @@ class SwitchBoxMPIKG(FlowchemDevice):
         self.components.extend([
             SwitchBoxADC("adc", self),
             SwitchBoxDAC("dac", self),
-            SwitchBoxRelay("relay", self)
+            SwitchBoxRelay("relay-A", self, "a"), # Channel 1 to 8
+            SwitchBoxRelay("relay-B", self, "b"), # Channel 9 to 16
+            SwitchBoxRelay("relay-C", self, "c"), # Channel 17 to 24
+            SwitchBoxRelay("relay-D", self, "d") # Channel 25 to 32
         ])
 
         # Keep the instances accessible to the devices connected to it
@@ -421,8 +424,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
             for i, v in enumerate(values):
                 if bits_power2[-(i + 1)] == 1:
                     bits_power2[-(i + 1)] = 0
-
-        await asyncio.sleep(switch_to_low_after)
+            await asyncio.sleep(switch_to_low_after)
 
         bits_command = bit_to_int(bits_power1+bits_power2)
         status = await self.box_io.write_and_read_reply(
@@ -438,13 +440,20 @@ class SwitchBoxMPIKG(FlowchemDevice):
             channel: int,
             value: int = 2,
             keep_port_status = True,
-            switch_to_low_after: float = -1
+            switch_to_low_after: float = -1,
+            port_identify: str = "a"
     ):
         """
         Set a single relay channel.
 
+        Each channel corresponds to one relay (1–32), organized in four ports:
+        - Port a → channels 1–8
+        - Port b → channels 9–16
+        - Port c → channels 17–24
+        - Port d → channels 25–32
+
         Args:
-            channel (int): Channel index [1–32].
+            channel (int): Channel index [1–8] or [1-32] if the channel match with the correspodent port.
             value (int, optional): Desired state (0=off, 1=half power, 2=full power).
                 Default = 2.
             keep_port_status (bool, optional): If True, preserves the state of other
@@ -453,35 +462,37 @@ class SwitchBoxMPIKG(FlowchemDevice):
             switch_to_low_after (float, optional): If >0 and value=2 (full power),
                 the channel is automatically reduced to 1 after the delay.
                 Default = -1 (disabled).
+            port_identify (float, optional): port of the relay
 
         Returns:
             bool: True if the command succeeded, False otherwise.
         """
-        status = await self.get_relay_channels()
-        if 0 < channel <= 8:
-            port, ch = "a", channel
-        elif 8 < channel <= 16:
-            port, ch = "b", channel - 8
-        elif 16 < channel <= 24:
-            port, ch = "c", channel - 16
-        elif 24 < channel <= 32:
-            port, ch = "d", channel - 24
-        else:
-            logger.error(f"There is not channel {channel} in device {self.name}!")
-            return False
-
-        values = status[port] if keep_port_status else [0] * 8
-        values[ch - 1] = value
-
-        if switch_to_low_after and value == 2:
-            if await self.set_relay_port(values=values, port=port.lower()):
-                values[ch - 1] = 1
-                return await self.set_relay_port(values=values, port=port.lower())
+        ch = channel
+        if channel > 8:
+            if 8 < channel <= 16 and port_identify == "b":
+                ch = channel - 8
+            elif 16 < channel <= 24 and port_identify == "c":
+                ch = channel - 16
+            elif 24 < channel <= 32 and port_identify == "d":
+                ch = channel - 24
             else:
+                logger.error(f"There is not channel {channel} in device {self.name} at port identify as "
+                             f"'Port-{port_identify}'!")
                 return False
 
+        status = await self.get_relay_channels()
+        values = status[port_identify] if keep_port_status else [0] * 8
+        values[ch - 1] = value
+
+        if switch_to_low_after > 0 and value == 2:
+            if await self.set_relay_port(values=values, port=port_identify.lower()):
+                await asyncio.sleep(switch_to_low_after)
+                values[ch - 1] = 1
+                return await self.set_relay_port(values=values, port=port_identify.lower())
+            else:
+                return False
         else:
-            return await self.set_relay_port(values=values, port=port.lower())
+            return await self.set_relay_port(values=values, port=port_identify.lower())
 
     async def get_relay_channels(self):
         """

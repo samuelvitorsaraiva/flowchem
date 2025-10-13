@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from flowchem.components.technical.power import PowerSwitch
+from flowchem.components.flowchem_component import FlowchemComponent
 from flowchem.devices.flowchem_device import FlowchemDevice
 
 
-class DigitalAnalogConverter(PowerSwitch):
+class DigitalAnalogConverter(FlowchemComponent):
     """
     Digital-to-Analog Converter component.
 
@@ -25,27 +25,23 @@ class DigitalAnalogConverter(PowerSwitch):
             Registers an API route ``/channel`` for setting channel values.
         """
         super().__init__(name, hw_device)
-        self.add_api_route("/channel", self.set_channel, methods=["PUT"])
-        self.add_api_route("/channel", self.read_channel, methods=["GET"])
+        self.add_api_route("/set", self.set, methods=["PUT"])
+        self.add_api_route("/read", self.read, methods=["GET"])
 
-    async def read_channel(self, channel: str) -> float:
+    async def read(self) -> float:
         """
         Read the DAC output of a channel.
-
-        Args:
-            channel (str): DAC channel index.
         """
-        return -1
+        raise NotImplementedError
 
-    async def set_channel(self, channel: str = "1", value: str = "0 V") -> bool:
+    async def set(self, value: str = "0 V") -> bool:
         """
         Set the analog output value of a channel.
 
         Args:
-            channel: The identifier or name of the channel to control.
             value: The analog value to set (e.g., voltage in volts).
 
         Returns:
             True if the value was accepted and applied successfully.
         """
-        return True
+        raise NotImplementedError
