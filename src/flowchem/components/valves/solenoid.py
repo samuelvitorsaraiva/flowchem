@@ -36,7 +36,7 @@ class SolenoidValve(FlowchemComponent):
         """
         Open the solenoid valve.
 
-        This method switching the valve to the
+        This method switches the valve to the
         "open" state, allowing flow through the channel.
         """
         ...
@@ -45,7 +45,7 @@ class SolenoidValve(FlowchemComponent):
         """
         Close the solenoid valve.
 
-        This method switching the valve to
+        This method switches the valve to
         the "closed" state, stopping flow through the channel.
         """
         ...

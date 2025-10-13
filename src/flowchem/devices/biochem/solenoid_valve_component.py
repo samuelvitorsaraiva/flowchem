@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 from flowchem.components.valves.solenoid import SolenoidValve
-from flowchem.devices.flowchem_device import FlowchemDevice
 
 
 class BioChemSolenoidValveComponent(SolenoidValve):
@@ -16,8 +13,8 @@ class BioChemSolenoidValveComponent(SolenoidValve):
     API routes exposed (in addition to SolenoidValve):
         - PUT `/switch_to_low_power`: Schedule transition to low-power mode.
     """
-    def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
-        super().__init__(name, hw_device)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__( *args, **kwargs)
 
         self.add_api_route("/switch_to_low_power", self.switch_to_low_power, methods=["PUT"])
 

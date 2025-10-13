@@ -19,8 +19,8 @@ Typical usage
 Notes
 -----
 - The device supports "normally open" logic. When `normally_open=True`, a
-  `value=True` command opens the flow path without pulling the coil (value=0),
-  while `value=False` energizes the coil (value=2) to close it, optionally
+  `value=True` command opens the flow path without energizing the device (value=0),
+  while `value=False` energizes the device (value=2) to close it, optionally
   entering a low-power holding mode after `switch_to_low_after` seconds.
 """
 from __future__ import annotations
@@ -33,16 +33,6 @@ from flowchem.devices.custom.mpikg_switch_box import SwitchBoxMPIKG
 
 from loguru import logger
 import asyncio
-
-class SolenoidException(Exception):
-    """Base exception class for solenoid-related errors."""
-    pass
-
-
-class InvalidConfiguration(SolenoidException):
-    """Raised when the target switch-box support_platform cannot be found or initialized."""
-    pass
-
 
 class BioChemSolenoidValve(FlowchemDevice):
     """
@@ -101,7 +91,7 @@ class BioChemSolenoidValve(FlowchemDevice):
 
         The method polls `SwitchBoxMPIKG.INSTANCES` for the given `support_platform` name,
         sleeping 0.5 s between attempts. If the instance does not appear after a
-        few seconds, an :class:`InvalidConfiguration` is raised.
+        few seconds, an Exception is raised.
 
         Raises
         ------
@@ -114,10 +104,10 @@ class BioChemSolenoidValve(FlowchemDevice):
             await asyncio.sleep(0.5)
             n += 1
             if n > 6:
-                raise InvalidConfiguration(
+                raise Exception(
                     f"The electronic relay support_platform '{self.support_platform}' was not declared or initialized. "
                     "The valve cannot be initialized without a support_platform "
-                    "(Please add SwitchBoxMPIKG in the configuration file!)."
+                    "(Please add SwitchBoxMPIKG to the configuration file!)."
                 )
 
         self._io = SwitchBoxMPIKG.INSTANCES[self.support_platform]
@@ -133,15 +123,15 @@ class BioChemSolenoidValve(FlowchemDevice):
         Parameters
         ----------
         switch_to_low_after : int | float, default -1
-            Seconds after which the controller should reduce coil power to a
+            Seconds after which the controller should reduce device power to a
             low-power holding level. Use `-1` to keep full power (no low-power
             transition).
 
         Notes
         -----
         - When `normally_open` is True, opening the valve requires no power
-          (relay value 0) and not energizes the coil.
-        - When `normally_open` is False, the mapping is inverted.
+          (relay value 0) and not energizes the device.
+        - When `normally_open` is False, the behaviour is inverted.
         """
         if self.normally_open:
             return await self._io.set_relay_single_channel(
@@ -163,15 +153,15 @@ class BioChemSolenoidValve(FlowchemDevice):
         Parameters
         ----------
         switch_to_low_after : int | float, default -1
-            Seconds after which the controller should reduce coil power to a
+            Seconds after which the controller should reduce device power to a
             low-power holding level. Use `-1` to keep full power (no low-power
             transition).
 
         Notes
         -----
         - When `normally_open` is True, close the valve requires power
-          (relay value 2) and energizes the coil.
-        - When `normally_open` is False, the mapping is inverted.
+          (relay value 2) and energizes the device.
+        - When `normally_open` is False, the behaviour is inverted.
         """
         if self.normally_open:
             return await self._io.set_relay_single_channel(
