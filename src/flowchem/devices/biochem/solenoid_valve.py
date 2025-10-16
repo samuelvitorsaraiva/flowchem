@@ -183,19 +183,3 @@ class BioChemSolenoidValve(FlowchemDevice):
         elif 24 < self.channel <= 32:
             port, ch = "d", self.channel - 24
         return status[port][ch - 1] > 0 and not self.normally_open or status[port][ch - 1] == 0 and self.normally_open
-
-
-if __name__ == "__main__":
-    box = SwitchBoxMPIKG.from_config(port="COM8", name="box")
-    valve = BioChemSolenoidValve(name="", support_platform="box", channel=1)
-    async def main():
-        """Test function."""
-        await box.initialize()
-        print(box.device_info.version)
-        await valve.initialize()
-        await valve.open(switch_to_low_after=1)
-        await asyncio.sleep(1)
-        result = await valve.is_open()
-        print(result)
-
-    asyncio.run(main())
