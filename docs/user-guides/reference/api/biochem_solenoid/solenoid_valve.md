@@ -78,36 +78,6 @@ bool
 
 ---
 
-### `PUT /valve/valve/switch_to_low_power`
-
-**Summary:** Switch To Low Power
-**Description:** Schedule switching the valve to low-power mode.
-
-This reduces the risk of overheating by lowering
-the power supplied to the solenoid after the
-given delay (in seconds).
-
-Parameters
-----------
-after : float
-    Time in seconds after which the solenoid should enter
-    low-power mode. Use `-1` to disable low-power switching.
-
-Returns
--------
-None
-**Tags:** valve, valve
-**Operation ID:** `switch_to_low_power_valve_valve_switch_to_low_power_put`
-
-**Query Parameters:**
-- `after` (number, required, default = ``)
-
-**Responses:**
-- `200`: Successful Response
-- `422`: Validation Error
-
----
-
 ## Components
 
 ### `ComponentInfo` (object)

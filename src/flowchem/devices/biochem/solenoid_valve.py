@@ -116,16 +116,9 @@ class BioChemSolenoidValve(FlowchemDevice):
         conf_valve = "normally open" if self.normally_open else "normally closed"
         logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support_platform}' channel {self.channel}!")
 
-    async def open(self, switch_to_low_after=-1):
+    async def open(self):
         """
         Open valve and optionally enter low-power mode.
-
-        Parameters
-        ----------
-        switch_to_low_after : int | float, default -1
-            Seconds after which the controller should reduce device power to a
-            low-power holding level. Use `-1` to keep full power (no low-power
-            transition).
 
         Notes
         -----
@@ -137,25 +130,16 @@ class BioChemSolenoidValve(FlowchemDevice):
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=0,
-                switch_to_low_after=switch_to_low_after
             )
         else:
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=2,
-                switch_to_low_after=switch_to_low_after
             )
 
-    async def close(self, switch_to_low_after=-1):
+    async def close(self):
         """
         Close valve and optionally enter low-power mode.
-
-        Parameters
-        ----------
-        switch_to_low_after : int | float, default -1
-            Seconds after which the controller should reduce device power to a
-            low-power holding level. Use `-1` to keep full power (no low-power
-            transition).
 
         Notes
         -----
@@ -167,13 +151,11 @@ class BioChemSolenoidValve(FlowchemDevice):
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=2,
-                switch_to_low_after=switch_to_low_after
             )
         else:
             return await self._io.set_relay_single_channel(
                 channel=self.channel,
                 value=0,
-                switch_to_low_after=switch_to_low_after
             )
 
     async def is_open(self) -> bool:

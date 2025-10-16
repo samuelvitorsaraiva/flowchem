@@ -318,6 +318,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
             manufacturer="Custom",
             model="Custom",
         )
+        self.low_power_after: dict[str, float] = {"a": -1, "b": -1, "c": -1, "d": -1}
 
     @classmethod
     def from_config(
@@ -350,12 +351,29 @@ class SwitchBoxMPIKG(FlowchemDevice):
         logger.info(
             f"Connected to SwitchBoxMPIKG on port {self.box_io._serial.port}!")
 
+    """ Set to lower power appraoch """
+
+    async def set_lower_power_approach(self, port: str = "a", switch_to_low_after: float = -1):
+        """
+        Configure automatic switching from full power to half power after a delay.
+
+        This function reduces heat generation by automatically changing the relay output
+        from full power (2) to half power (1) after the specified time.
+        If the delay is set to 0 seconds, the feature is disabled.
+
+        Args:
+            port (str): Port where this approach will be triggered
+            switch_to_low_after (int): Delay time before switching to half power is seconds.
+                -1 mean turn this option off
+        """
+        assert port in "a b c d".split()
+        self.low_power_after[port] = switch_to_low_after
+
     """ Port Befehle """
 
     async def set_relay_port(
             self,
             values: list[int],
-            switch_to_low_after: float = -1,
             port: str = "a"
     ):
         """Set all 8 relay channels of a given port.
@@ -368,9 +386,6 @@ class SwitchBoxMPIKG(FlowchemDevice):
         Args:
             values (list[int]): List of up to 8 integers (0, 1, or 2) defining
                 channel states. Shorter lists are zero-padded.
-            switch_to_low_after (float, optional): Time in seconds after which
-                channels set to full power (2) will be reduced to half power (1).
-                Default = -1 (disabled).
             port (str, optional): Port identifier ("a", "b", "c", "d").
                 Default = "a".
 
@@ -420,11 +435,11 @@ class SwitchBoxMPIKG(FlowchemDevice):
         )
         if not status.startswith("OK"):
             return False
-        if switch_to_low_after > 0:
+        if self.low_power_after[port] > 0:
             for i, v in enumerate(values):
                 if bits_power2[-(i + 1)] == 1:
                     bits_power2[-(i + 1)] = 0
-            await asyncio.sleep(switch_to_low_after)
+            await asyncio.sleep(self.low_power_after[port])
 
         bits_command = bit_to_int(bits_power1+bits_power2)
         status = await self.box_io.write_and_read_reply(
@@ -440,7 +455,6 @@ class SwitchBoxMPIKG(FlowchemDevice):
             channel: int,
             value: int = 2,
             keep_port_status = True,
-            switch_to_low_after: float = -1,
             port_identify: str = "a"
     ):
         """
@@ -459,9 +473,6 @@ class SwitchBoxMPIKG(FlowchemDevice):
             keep_port_status (bool, optional): If True, preserves the state of other
                 channels in the same port. If False, all other channels are reset
                 to 0. Default = True.
-            switch_to_low_after (float, optional): If >0 and value=2 (full power),
-                the channel is automatically reduced to 1 after the delay.
-                Default = -1 (disabled).
             port_identify (float, optional): port of the relay
 
         Returns:
@@ -484,9 +495,9 @@ class SwitchBoxMPIKG(FlowchemDevice):
         values = status[port_identify] if keep_port_status else [0] * 8
         values[ch - 1] = value
 
-        if switch_to_low_after > 0 and value == 2:
+        if self.low_power_after[port_identify.lower()] > 0 and value == 2:
             if await self.set_relay_port(values=values, port=port_identify.lower()):
-                await asyncio.sleep(switch_to_low_after)
+                await asyncio.sleep(self.low_power_after[port_identify.lower()])
                 values[ch - 1] = 1
                 return await self.set_relay_port(values=values, port=port_identify.lower())
             else:

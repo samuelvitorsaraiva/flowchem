@@ -163,12 +163,12 @@ ComponentInfo
 ### `PUT /mybox/relay-A/power-on`
 
 **Summary:** Power On
-**Description:** Power ON a single relay channel.
+**Description:** Power ON a single relay channel at full power (~24 V).
 
-Sends a command to set the given channel to the "Full power" state (2).
+Sends a command to set the specified channel to state "2".
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping:
         - Port a → channels 1–8
         - Port b → channels 9–16
         - Port c → channels 17–24
@@ -193,14 +193,10 @@ Returns:
 **Summary:** Power Off
 **Description:** Power OFF a single relay channel.
 
-Sends a command to set the given channel to the "OFF" state (0).
+Sends a command to set the given channel to state "0" (no voltage).
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
-        - Port a → channels 1–8
-        - Port b → channels 9–16
-        - Port c → channels 17–24
-        - Port d → channels 25–32
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping.
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -219,9 +215,9 @@ Returns:
 ### `PUT /mybox/relay-A/multiple_channel`
 
 **Summary:** Multiple Channel
-**Description:** Set the relay states of all 8 channels on the current port.
+**Description:** Set the relay states of all 8 channels on the current port simultaneously.
 
-Each character in `values` represents a relay channel state:
+Each character in `values` represents one channel’s state:
     * 0 → OFF
     * 1 → Half power (~12 V)
     * 2 → Full power (~24 V)
@@ -229,11 +225,8 @@ Each character in `values` represents a relay channel state:
 Args:
     values (str): String of up to 8 digits (0, 1, or 2).
         Example: "00010012"
-        - If shorter than 8, remaining channels are set to 0.
+        - If shorter than 8, remaining channels default to 0 (OFF).
         - If longer than 8, extra values are ignored.
-    switch_to_low_after (float, optional):
-        Delay in seconds after which channels set to 2 are automatically
-        switched to 1 (half power). Default is -1 (disabled).
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -242,7 +235,6 @@ Returns:
 
 **Query Parameters:**
 - `values` (string, required, default = ``)
-- `switch_to_low_after` (number, optional, default = `-1`)
 
 **Responses:**
 - `200`: Successful Response
@@ -253,20 +245,20 @@ Returns:
 ### `GET /mybox/relay-A/channel_set_point`
 
 **Summary:** Read Channel Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current state of a specific relay channel.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Args:
-    channel (str): Relay channel index (1–8).
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port.
 
 Returns:
-    int | bool:
-        - 0, 1, or 2 → valid relay state.
-        - None → if the channel index is invalid.
+    int | None:
+        - 0, 1, or 2 → Valid relay state.
+        - None → If the channel index is invalid or not part of this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channel_set_point_mybox_relay_A_channel_set_point_get`
 
@@ -282,21 +274,46 @@ Returns:
 ### `GET /mybox/relay-A/channels_set_point`
 
 **Summary:** Read Channels Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current states of all 8 channels on the current port.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Returns:
-    list[int]:
-        - 0, 1, or 2 → valid relay state.
+    list[int]: List of 8 integers (0, 1, or 2) representing the current state
+    of each relay channel on this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channels_set_point_mybox_relay_A_channels_set_point_get`
 
 **Responses:**
 - `200`: Successful Response
+
+---
+
+### `PUT /mybox/relay-A/lower_power_approach`
+
+**Summary:** Set Lower Power Approach
+**Description:** Configure automatic switching from full power to half power after a delay.
+
+This function reduces heat generation by automatically changing the relay output
+from full power (2) to half power (1) after the specified time.
+If the delay is set to 0 seconds, the feature is disabled.
+
+Args:
+    switch_to_low_after (str): Delay time before switching to half power, with units.
+        Example: "1 s", "500 ms", "2 s".
+        Use "0 s" to disable automatic reduction.
+**Tags:** mybox, mybox
+**Operation ID:** `set_lower_power_approach_mybox_relay_A_lower_power_approach_put`
+
+**Query Parameters:**
+- `switch_to_low_after` (string, optional, default = `1 s`)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
 
 ---
 
@@ -322,12 +339,12 @@ ComponentInfo
 ### `PUT /mybox/relay-B/power-on`
 
 **Summary:** Power On
-**Description:** Power ON a single relay channel.
+**Description:** Power ON a single relay channel at full power (~24 V).
 
-Sends a command to set the given channel to the "Full power" state (2).
+Sends a command to set the specified channel to state "2".
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping:
         - Port a → channels 1–8
         - Port b → channels 9–16
         - Port c → channels 17–24
@@ -352,14 +369,10 @@ Returns:
 **Summary:** Power Off
 **Description:** Power OFF a single relay channel.
 
-Sends a command to set the given channel to the "OFF" state (0).
+Sends a command to set the given channel to state "0" (no voltage).
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
-        - Port a → channels 1–8
-        - Port b → channels 9–16
-        - Port c → channels 17–24
-        - Port d → channels 25–32
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping.
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -378,9 +391,9 @@ Returns:
 ### `PUT /mybox/relay-B/multiple_channel`
 
 **Summary:** Multiple Channel
-**Description:** Set the relay states of all 8 channels on the current port.
+**Description:** Set the relay states of all 8 channels on the current port simultaneously.
 
-Each character in `values` represents a relay channel state:
+Each character in `values` represents one channel’s state:
     * 0 → OFF
     * 1 → Half power (~12 V)
     * 2 → Full power (~24 V)
@@ -388,11 +401,8 @@ Each character in `values` represents a relay channel state:
 Args:
     values (str): String of up to 8 digits (0, 1, or 2).
         Example: "00010012"
-        - If shorter than 8, remaining channels are set to 0.
+        - If shorter than 8, remaining channels default to 0 (OFF).
         - If longer than 8, extra values are ignored.
-    switch_to_low_after (float, optional):
-        Delay in seconds after which channels set to 2 are automatically
-        switched to 1 (half power). Default is -1 (disabled).
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -401,7 +411,6 @@ Returns:
 
 **Query Parameters:**
 - `values` (string, required, default = ``)
-- `switch_to_low_after` (number, optional, default = `-1`)
 
 **Responses:**
 - `200`: Successful Response
@@ -412,20 +421,20 @@ Returns:
 ### `GET /mybox/relay-B/channel_set_point`
 
 **Summary:** Read Channel Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current state of a specific relay channel.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Args:
-    channel (str): Relay channel index (1–8).
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port.
 
 Returns:
-    int | bool:
-        - 0, 1, or 2 → valid relay state.
-        - None → if the channel index is invalid.
+    int | None:
+        - 0, 1, or 2 → Valid relay state.
+        - None → If the channel index is invalid or not part of this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channel_set_point_mybox_relay_B_channel_set_point_get`
 
@@ -441,21 +450,46 @@ Returns:
 ### `GET /mybox/relay-B/channels_set_point`
 
 **Summary:** Read Channels Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current states of all 8 channels on the current port.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Returns:
-    list[int]:
-        - 0, 1, or 2 → valid relay state.
+    list[int]: List of 8 integers (0, 1, or 2) representing the current state
+    of each relay channel on this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channels_set_point_mybox_relay_B_channels_set_point_get`
 
 **Responses:**
 - `200`: Successful Response
+
+---
+
+### `PUT /mybox/relay-B/lower_power_approach`
+
+**Summary:** Set Lower Power Approach
+**Description:** Configure automatic switching from full power to half power after a delay.
+
+This function reduces heat generation by automatically changing the relay output
+from full power (2) to half power (1) after the specified time.
+If the delay is set to 0 seconds, the feature is disabled.
+
+Args:
+    switch_to_low_after (str): Delay time before switching to half power, with units.
+        Example: "1 s", "500 ms", "2 s".
+        Use "0 s" to disable automatic reduction.
+**Tags:** mybox, mybox
+**Operation ID:** `set_lower_power_approach_mybox_relay_B_lower_power_approach_put`
+
+**Query Parameters:**
+- `switch_to_low_after` (string, optional, default = `1 s`)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
 
 ---
 
@@ -481,12 +515,12 @@ ComponentInfo
 ### `PUT /mybox/relay-C/power-on`
 
 **Summary:** Power On
-**Description:** Power ON a single relay channel.
+**Description:** Power ON a single relay channel at full power (~24 V).
 
-Sends a command to set the given channel to the "Full power" state (2).
+Sends a command to set the specified channel to state "2".
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping:
         - Port a → channels 1–8
         - Port b → channels 9–16
         - Port c → channels 17–24
@@ -511,14 +545,10 @@ Returns:
 **Summary:** Power Off
 **Description:** Power OFF a single relay channel.
 
-Sends a command to set the given channel to the "OFF" state (0).
+Sends a command to set the given channel to state "0" (no voltage).
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
-        - Port a → channels 1–8
-        - Port b → channels 9–16
-        - Port c → channels 17–24
-        - Port d → channels 25–32
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping.
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -537,9 +567,9 @@ Returns:
 ### `PUT /mybox/relay-C/multiple_channel`
 
 **Summary:** Multiple Channel
-**Description:** Set the relay states of all 8 channels on the current port.
+**Description:** Set the relay states of all 8 channels on the current port simultaneously.
 
-Each character in `values` represents a relay channel state:
+Each character in `values` represents one channel’s state:
     * 0 → OFF
     * 1 → Half power (~12 V)
     * 2 → Full power (~24 V)
@@ -547,11 +577,8 @@ Each character in `values` represents a relay channel state:
 Args:
     values (str): String of up to 8 digits (0, 1, or 2).
         Example: "00010012"
-        - If shorter than 8, remaining channels are set to 0.
+        - If shorter than 8, remaining channels default to 0 (OFF).
         - If longer than 8, extra values are ignored.
-    switch_to_low_after (float, optional):
-        Delay in seconds after which channels set to 2 are automatically
-        switched to 1 (half power). Default is -1 (disabled).
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -560,7 +587,6 @@ Returns:
 
 **Query Parameters:**
 - `values` (string, required, default = ``)
-- `switch_to_low_after` (number, optional, default = `-1`)
 
 **Responses:**
 - `200`: Successful Response
@@ -571,20 +597,20 @@ Returns:
 ### `GET /mybox/relay-C/channel_set_point`
 
 **Summary:** Read Channel Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current state of a specific relay channel.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Args:
-    channel (str): Relay channel index (1–8).
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port.
 
 Returns:
-    int | bool:
-        - 0, 1, or 2 → valid relay state.
-        - None → if the channel index is invalid.
+    int | None:
+        - 0, 1, or 2 → Valid relay state.
+        - None → If the channel index is invalid or not part of this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channel_set_point_mybox_relay_C_channel_set_point_get`
 
@@ -600,21 +626,46 @@ Returns:
 ### `GET /mybox/relay-C/channels_set_point`
 
 **Summary:** Read Channels Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current states of all 8 channels on the current port.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Returns:
-    list[int]:
-        - 0, 1, or 2 → valid relay state.
+    list[int]: List of 8 integers (0, 1, or 2) representing the current state
+    of each relay channel on this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channels_set_point_mybox_relay_C_channels_set_point_get`
 
 **Responses:**
 - `200`: Successful Response
+
+---
+
+### `PUT /mybox/relay-C/lower_power_approach`
+
+**Summary:** Set Lower Power Approach
+**Description:** Configure automatic switching from full power to half power after a delay.
+
+This function reduces heat generation by automatically changing the relay output
+from full power (2) to half power (1) after the specified time.
+If the delay is set to 0 seconds, the feature is disabled.
+
+Args:
+    switch_to_low_after (str): Delay time before switching to half power, with units.
+        Example: "1 s", "500 ms", "2 s".
+        Use "0 s" to disable automatic reduction.
+**Tags:** mybox, mybox
+**Operation ID:** `set_lower_power_approach_mybox_relay_C_lower_power_approach_put`
+
+**Query Parameters:**
+- `switch_to_low_after` (string, optional, default = `1 s`)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
 
 ---
 
@@ -640,12 +691,12 @@ ComponentInfo
 ### `PUT /mybox/relay-D/power-on`
 
 **Summary:** Power On
-**Description:** Power ON a single relay channel.
+**Description:** Power ON a single relay channel at full power (~24 V).
 
-Sends a command to set the given channel to the "Full power" state (2).
+Sends a command to set the specified channel to state "2".
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping:
         - Port a → channels 1–8
         - Port b → channels 9–16
         - Port c → channels 17–24
@@ -670,14 +721,10 @@ Returns:
 **Summary:** Power Off
 **Description:** Power OFF a single relay channel.
 
-Sends a command to set the given channel to the "OFF" state (0).
+Sends a command to set the given channel to state "0" (no voltage).
 
 Args:
-    channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
-        - Port a → channels 1–8
-        - Port b → channels 9–16
-        - Port c → channels 17–24
-        - Port d → channels 25–32
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping.
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -696,9 +743,9 @@ Returns:
 ### `PUT /mybox/relay-D/multiple_channel`
 
 **Summary:** Multiple Channel
-**Description:** Set the relay states of all 8 channels on the current port.
+**Description:** Set the relay states of all 8 channels on the current port simultaneously.
 
-Each character in `values` represents a relay channel state:
+Each character in `values` represents one channel’s state:
     * 0 → OFF
     * 1 → Half power (~12 V)
     * 2 → Full power (~24 V)
@@ -706,11 +753,8 @@ Each character in `values` represents a relay channel state:
 Args:
     values (str): String of up to 8 digits (0, 1, or 2).
         Example: "00010012"
-        - If shorter than 8, remaining channels are set to 0.
+        - If shorter than 8, remaining channels default to 0 (OFF).
         - If longer than 8, extra values are ignored.
-    switch_to_low_after (float, optional):
-        Delay in seconds after which channels set to 2 are automatically
-        switched to 1 (half power). Default is -1 (disabled).
 
 Returns:
     bool: True if the device acknowledged the command, False otherwise.
@@ -719,7 +763,6 @@ Returns:
 
 **Query Parameters:**
 - `values` (string, required, default = ``)
-- `switch_to_low_after` (number, optional, default = `-1`)
 
 **Responses:**
 - `200`: Successful Response
@@ -730,20 +773,20 @@ Returns:
 ### `GET /mybox/relay-D/channel_set_point`
 
 **Summary:** Read Channel Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current state of a specific relay channel.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Args:
-    channel (str): Relay channel index (1–8).
+    channel (str): Relay channel index (1–8) or (1–32) depending on the port.
 
 Returns:
-    int | bool:
-        - 0, 1, or 2 → valid relay state.
-        - None → if the channel index is invalid.
+    int | None:
+        - 0, 1, or 2 → Valid relay state.
+        - None → If the channel index is invalid or not part of this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channel_set_point_mybox_relay_D_channel_set_point_get`
 
@@ -759,21 +802,46 @@ Returns:
 ### `GET /mybox/relay-D/channels_set_point`
 
 **Summary:** Read Channels Set Point
-**Description:** Read the current relay state of a single channel.
+**Description:** Read the current states of all 8 channels on the current port.
 
 Channel states:
     * 0 → OFF
-    * 1 → Half power (power1 only, ~12 V)
-    * 2 → Full power (power1 + power2, ~24 V)
+    * 1 → Half power (~12 V)
+    * 2 → Full power (~24 V)
 
 Returns:
-    list[int]:
-        - 0, 1, or 2 → valid relay state.
+    list[int]: List of 8 integers (0, 1, or 2) representing the current state
+    of each relay channel on this port.
 **Tags:** mybox, mybox
 **Operation ID:** `read_channels_set_point_mybox_relay_D_channels_set_point_get`
 
 **Responses:**
 - `200`: Successful Response
+
+---
+
+### `PUT /mybox/relay-D/lower_power_approach`
+
+**Summary:** Set Lower Power Approach
+**Description:** Configure automatic switching from full power to half power after a delay.
+
+This function reduces heat generation by automatically changing the relay output
+from full power (2) to half power (1) after the specified time.
+If the delay is set to 0 seconds, the feature is disabled.
+
+Args:
+    switch_to_low_after (str): Delay time before switching to half power, with units.
+        Example: "1 s", "500 ms", "2 s".
+        Use "0 s" to disable automatic reduction.
+**Tags:** mybox, mybox
+**Operation ID:** `set_lower_power_approach_mybox_relay_D_lower_power_approach_put`
+
+**Query Parameters:**
+- `switch_to_low_after` (string, optional, default = `1 s`)
+
+**Responses:**
+- `200`: Successful Response
+- `422`: Validation Error
 
 ---
 

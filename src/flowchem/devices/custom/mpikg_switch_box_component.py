@@ -102,56 +102,44 @@ class SwitchBoxADC(MultiChannelADC):
 
 class SwitchBoxRelay(MultiChannelRelay):
     """
-    Interface for controlling a multi-channel relay module within a SwitchBox device.
+    Interface for controlling a multichannel relay module within a SwitchBox device.
 
-    The `SwitchBoxRelay` class provides asynchronous control over relay ports ("a", "b", "c", or "d"),
-    where each port manages up to 8 relay channels. It allows powering individual channels ON/OFF,
-    setting multiple channels simultaneously, and reading the current state of specific channels.
+    The `SwitchBoxRelay` class provides asynchronous control of relay ports ("a", "b", "c", or "d"),
+    where each port controls up to 8 relay channels. It allows powering channels ON/OFF, setting
+    multiple channels simultaneously, and reading their current state.
 
-    Each channel can operate in three modes:
+    Each channel supports three power modes:
         * 0 → OFF
         * 1 → Half power (~12 V)
         * 2 → Full power (~24 V)
 
-    The `identify` parameter determines which port (a–d) this relay instance controls:
+    The `identify` parameter determines which physical port this instance controls:
         - Port "a" → channels 1–8
         - Port "b" → channels 9–16
         - Port "c" → channels 17–24
         - Port "d" → channels 25–32
 
     Args:
-        name (str): Name of the relay device instance.
-        hw_device (SwitchBoxMPIKG): Reference to the connected SwitchBox hardware device.
-        identify (str): Port identifier ("a", "b", "c", or "d") corresponding to the relay module.
-
-    Methods:
-        power_on(channel: str) -> bool:
-            Power ON a specific relay channel.
-        power_off(channel: str) -> bool:
-            Power OFF a specific relay channel.
-        multiple_channel(values: str, switch_to_low_after: float = -1) -> bool:
-            Set states for all 8 channels at once.
-        read_channel_set_point(channel: str) -> int | None:
-            Read the current relay state of a specific channel.
-        set_channel(channel: str, value: str, keep_port_status: bool = True, switch_to_low_after: float = -1) -> bool:
-            Internal helper to change the state of a single relay channel.
+        name (str): Name assigned to the relay device instance.
+        hw_device (SwitchBoxMPIKG): Reference to the connected SwitchBox hardware.
+        identify (str): Port identifier ("a", "b", "c", or "d").
     """
+
     def __init__(self, name: str, hw_device: "SwitchBoxMPIKG", identify: str):
-
         super().__init__(name=name, hw_device=hw_device)
-
         self.hw_device: SwitchBoxMPIKG
+        self.identify = identify  # Port identifier ("a", "b", "c", or "d")
 
-        self.identify = identify # Port identifier ("a", "b", "c", or "d")
+        self.add_api_route("/lower_power_approach", self.set_lower_power_approach, methods=["PUT"])
 
     async def power_on(self, channel: str) -> bool:  # type:ignore[override]
         """
-        Power ON a single relay channel.
+        Power ON a single relay channel at full power (~24 V).
 
-        Sends a command to set the given channel to the "Full power" state (2).
+        Sends a command to set the specified channel to state "2".
 
         Args:
-            channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
+            channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping:
                 - Port a → channels 1–8
                 - Port b → channels 9–16
                 - Port c → channels 17–24
@@ -166,25 +154,21 @@ class SwitchBoxRelay(MultiChannelRelay):
         """
         Power OFF a single relay channel.
 
-        Sends a command to set the given channel to the "OFF" state (0).
+        Sends a command to set the given channel to state "0" (no voltage).
 
         Args:
-            channel (str): Relay channel index (1–8) or (1–32) depending on port mapping:
-                - Port a → channels 1–8
-                - Port b → channels 9–16
-                - Port c → channels 17–24
-                - Port d → channels 25–32
+            channel (str): Relay channel index (1–8) or (1–32) depending on the port mapping.
 
         Returns:
             bool: True if the device acknowledged the command, False otherwise.
         """
         return await self.set_channel(channel, value="0")
 
-    async def multiple_channel(self, values: str, switch_to_low_after: float = -1):
+    async def multiple_channel(self, values: str) -> bool:
         """
-        Set the relay states of all 8 channels on the current port.
+        Set the relay states of all 8 channels on the current port simultaneously.
 
-        Each character in `values` represents a relay channel state:
+        Each character in `values` represents one channel’s state:
             * 0 → OFF
             * 1 → Half power (~12 V)
             * 2 → Full power (~24 V)
@@ -192,37 +176,33 @@ class SwitchBoxRelay(MultiChannelRelay):
         Args:
             values (str): String of up to 8 digits (0, 1, or 2).
                 Example: "00010012"
-                - If shorter than 8, remaining channels are set to 0.
+                - If shorter than 8, remaining channels default to 0 (OFF).
                 - If longer than 8, extra values are ignored.
-            switch_to_low_after (float, optional):
-                Delay in seconds after which channels set to 2 are automatically
-                switched to 1 (half power). Default is -1 (disabled).
 
         Returns:
             bool: True if the device acknowledged the command, False otherwise.
         """
         return await self.hw_device.set_relay_port(
             values=[int(c) for c in values],
-            switch_to_low_after=switch_to_low_after,
             port=self.identify
         )
 
     async def read_channel_set_point(self, channel: str) -> int | None:
         """
-        Read the current relay state of a single channel.
+        Read the current state of a specific relay channel.
 
         Channel states:
             * 0 → OFF
-            * 1 → Half power (power1 only, ~12 V)
-            * 2 → Full power (power1 + power2, ~24 V)
+            * 1 → Half power (~12 V)
+            * 2 → Full power (~24 V)
 
         Args:
-            channel (str): Relay channel index (1–8).
+            channel (str): Relay channel index (1–8) or (1–32) depending on the port.
 
         Returns:
-            int | bool:
-                - 0, 1, or 2 → valid relay state.
-                - None → if the channel index is invalid.
+            int | None:
+                - 0, 1, or 2 → Valid relay state.
+                - None → If the channel index is invalid or not part of this port.
         """
         ch = int(channel)
         if not 0 < ch <= 8:
@@ -242,46 +222,63 @@ class SwitchBoxRelay(MultiChannelRelay):
 
     async def read_channels_set_point(self) -> list[int]:
         """
-        Read the current relay state of a single channel.
+        Read the current states of all 8 channels on the current port.
 
         Channel states:
             * 0 → OFF
-            * 1 → Half power (power1 only, ~12 V)
-            * 2 → Full power (power1 + power2, ~24 V)
+            * 1 → Half power (~12 V)
+            * 2 → Full power (~24 V)
 
         Returns:
-            list[int]:
-                - 0, 1, or 2 → valid relay state.
+            list[int]: List of 8 integers (0, 1, or 2) representing the current state
+            of each relay channel on this port.
         """
         asw = await self.hw_device.get_relay_channels()
         return asw[self.identify]
 
-    """ Auxiliar methods """
+    async def set_lower_power_approach(self, switch_to_low_after: str = "1 s"):
+        """
+        Configure automatic switching from full power to half power after a delay.
+
+        This function reduces heat generation by automatically changing the relay output
+        from full power (2) to half power (1) after the specified time.
+        If the delay is set to 0 seconds, the feature is disabled.
+
+        Args:
+            switch_to_low_after (str): Delay time before switching to half power, with units.
+                Example: "1 s", "500 ms", "2 s".
+                Use "0 s" to disable automatic reduction.
+        """
+        value = ureg.Quantity(switch_to_low_after).to("s").magnitude
+        if value > 0:
+            return await self.hw_device.set_lower_power_approach(
+                port=self.identify, switch_to_low_after=value
+            )
+        else:
+            return await self.hw_device.set_lower_power_approach(
+                port=self.identify, switch_to_low_after=-1
+            )
+
+    """ Auxiliary methods """
 
     async def set_channel(
-            self,
-            channel: str,
-            value: str,
-            keep_port_status: bool = True,
-            switch_to_low_after: float = -1) -> bool:
+        self,
+        channel: str,
+        value: str,
+        keep_port_status: bool = True
+    ) -> bool:
         """
         Set the state of a single relay channel.
 
         Args:
-            channel (str): Relay channel index (1–8) or (1-32) if the channel match with the correspodent port.
+            channel (str): Relay channel index (1–8) or (1–32) if it matches the corresponding port.
             value (str): Desired channel state:
                 * 0 → OFF
                 * 1 → Half power (~12 V)
                 * 2 → Full power (~24 V)
-            keep_port_status (str, optional):
-                If true (default), preserves the state of other channels
-                in the same port (module).
-                If false, all other channels in the port are reset to 0.
-            switch_to_low_after (float, optional):
-                If >0 and value=2, automatically switches the channel
-                to 1 (half power) after the given delay in seconds.
-                Useful to reduce heat generation.
-                Default = -1 (disabled).
+            keep_port_status (bool, optional):
+                Whether to preserve the state of other channels in the same port.
+                Defaults to True.
 
         Returns:
             bool: True if the device acknowledged the command, False otherwise.
@@ -290,6 +287,6 @@ class SwitchBoxRelay(MultiChannelRelay):
             channel=int(channel),
             value=int(value),
             keep_port_status=keep_port_status,
-            switch_to_low_after=switch_to_low_after,
             port_identify=self.identify
         )
+
