@@ -1,3 +1,3 @@
-from .solenoid_valve import BioChemSolenoidValve
+from .solenoid_valve import BioChemSolenoidValve, BioChemSolenoid2WayValve
 
-__all__ = ["BioChemSolenoidValve"]
+__all__ = ["BioChemSolenoidValve", "BioChemSolenoid2WayValve"]

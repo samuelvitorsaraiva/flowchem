@@ -95,6 +95,23 @@ class MultiChannelRelay(Relay):
         """
         raise NotImplementedError
 
+    async def is_on(self, channel: str) -> bool:  # type:ignore[override]
+        """
+        Check whether the relay is currently ON.
+
+        This asynchronous method queries the current state of the relay channel
+        to determine if it is active (ON) or inactive (OFF).
+
+        Returns:
+            bool: True if the relay is ON, False if it is OFF.
+        """
+        value = await self.read_channel_set_point(channel)
+        if value:
+            return value > 0
+        else:
+            raise Exception(f"The component {self.name} from {self.hw_device.name} has not channel: {channel}!!")
+
+
     async def multiple_channel(self, values: str):
         """
         Set the relay states of all channels.

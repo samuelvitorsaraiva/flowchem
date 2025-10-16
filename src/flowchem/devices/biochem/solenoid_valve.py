@@ -1,73 +1,74 @@
-"""
-BioChem solenoid valve device backed by an MPIKG switch box.
-
-This module exposes:
-- Domain-specific exceptions (`SolenoidException`, `InvalidConfiguration`)
-- `BioChemSolenoidValve`, a `FlowchemDevice` that controls a single solenoid
-  channel on a `SwitchBoxMPIKG` I/O board and registers a `SolenoidValve`
-  component API.
-
-Typical usage
--------------
-1) Ensure a `SwitchBoxMPIKG` instance is created and registered (via
-   `SwitchBoxMPIKG.from_config(...)` or equivalent) so it appears in
-   `SwitchBoxMPIKG.INSTANCES` under the given `support_platform` name.
-2) Initialize the valve device (`await valve.initialize()`).
-3) Switch the valve state with `await valve.change_status(True/False, ...)`.
-4) Query valve status with `await valve.is_open()`.
-
-Notes
------
-- The device supports "normally open" logic. When `normally_open=True`, a
-  `value=True` command opens the flow path without energizing the device (value=0),
-  while `value=False` energizes the device (value=2) to close it, optionally
-  entering a low-power holding mode after `switch_to_low_after` seconds.
-"""
 from __future__ import annotations
 from flowchem.devices.flowchem_device import FlowchemDevice
 from flowchem.components.device_info import DeviceInfo
 from flowchem.utils.people import samuel_saraiva
-from .solenoid_valve_component import BioChemSolenoidValveComponent
+from flowchem.components.valves.solenoid import SolenoidValve, SolenoidValve2Way
 
-from flowchem.devices.custom.mpikg_switch_box import SwitchBoxMPIKG
+from flowchem.components.technical.relay import Relay
 
 from loguru import logger
 import asyncio
 
 class BioChemSolenoidValve(FlowchemDevice):
     """
-    Flowchem device that controls a single solenoid valve via an MPIKG switch box.
+    Flowchem device for controlling a single Bio-Chem solenoid valve via a relay component.
 
-    This device:
-      - waits for a `SwitchBoxMPIKG` instance with a matching `support_platform` name to be
-        available,
-      - registers a `SolenoidValve` component under the device (exposing the
-        standard `/open`, `/close`, `/status` HTTP routes),
-      - drives a single relay channel to set the valve state, optionally switching
-        to a low-power holding mode.
+    The `BioChemSolenoidValve` interfaces with any Flowchem device that exposes a
+    `Relay` component — either a single-channel or multi-channel relay controller.
+    It waits for the corresponding relay instance (specified by `support_platform`)
+    to become available and then registers a `SolenoidValve` component providing
+    standardized `/open`, `/close`, and `/status` HTTP routes.
+
+    If the relay device supports multiple channels, the user must specify the
+    `channel` index used to drive this valve. For single-channel relays, the
+    `channel` argument can be omitted.
+
+    The valve can operate in *normally open* (NO) or *normally closed* (NC) mode:
+      - **Normally open** (default): Flow path open when unpowered.
+      - **Normally closed**: Flow path closed when unpowered.
+
+    Typical usage
+    -------------
+    1. Ensure a Flowchem device containing a `Relay` component is initialized
+       and available in ``Relay.INSTANCES`` under the given `support_platform`
+       identifier (formatted as ``<device_name>/<relay_name>``).
+    2. Initialize the valve device:
+       ``await valve.initialize()``
+    3. Operate the valve:
+       ``await valve.open()`` or ``await valve.close()``
+    4. Query valve state:
+       ``await valve.is_open()``
 
     Parameters
     ----------
     name : str
-        Device identifier within Flowchem.
-    support : str
-        Name of the `SwitchBoxMPIKG` instance to bind to (key in
-        `SwitchBoxMPIKG.INSTANCES`).
-    channel : int
-        Relay channel index (1–32) on the switch box.
+        Unique identifier for this valve device within Flowchem.
+    support_platform : str
+        Identifier of the relay platform controlling the valve, formatted as
+        ``<device_name>/<relay_name>``. Must correspond to a registered entry in
+        ``Relay.INSTANCES``.
+    channel : int, optional
+        Relay channel index (1–32) if the relay supports multiple channels.
+        Leave unset for single-channel relays.
     normally_open : bool, default True
-        Electrical/flow logic of the valve. If True, the valve is open by default
-        (no power). If False, the valve is closed by default (no power).
+        Defines the electrical/flow logic of the valve. If True, the valve is
+        open by default (no power); if False, it is closed by default.
 
     Attributes
     ----------
     device_info : DeviceInfo
-        Metadata for traceability.
-    _io : SwitchBoxMPIKG
-        The bound I/O board instance once initialization completes.
+        Metadata for device traceability and identification.
+    _io : Relay
+        The bound relay instance controlling the valve channel.
     """
 
-    def __init__(self, name: str, support_platform: str, channel: int, normally_open: bool = True):
+    def __init__(
+            self,
+            name: str,
+            support_platform: str, # device_name/relay_name ex: mpibox/relay-A
+            channel: int | None = None,
+            normally_open: bool = True
+    ):
 
         super().__init__(name)
 
@@ -77,7 +78,7 @@ class BioChemSolenoidValve(FlowchemDevice):
 
         self.normally_open = normally_open
 
-        self._io: SwitchBoxMPIKG
+        self._io: Relay
 
         self.device_info = DeviceInfo(
             authors=[samuel_saraiva],
@@ -87,99 +88,125 @@ class BioChemSolenoidValve(FlowchemDevice):
 
     async def initialize(self):
         """
-        Bind to the configured `SwitchBoxMPIKG` instance and register the valve component.
+        Bind the solenoid valve to the configured relay support platform.
 
-        The method polls `SwitchBoxMPIKG.INSTANCES` for the given `support_platform` name,
-        sleeping 0.5 s between attempts. If the instance does not appear after a
-        few seconds, an Exception is raised.
+        This method polls ``Relay.INSTANCES`` for the configured `support_platform` name.
+        It checks every 0.5 seconds for up to ~3 seconds (6 attempts). Once the relay
+        instance is found, the valve component is registered and becomes operational.
 
         Raises
         ------
-        InvalidConfiguration
-            If no matching switch-box instance is found within the retry window.
+        Exception
+            If no matching relay instance is found within the retry window.
         """
-
         n = 0
-        while self.support_platform not in SwitchBoxMPIKG.INSTANCES:
+        while self.support_platform not in Relay.INSTANCES:
             await asyncio.sleep(0.5)
             n += 1
             if n > 6:
                 raise Exception(
-                    f"The electronic relay support_platform '{self.support_platform}' was not declared or initialized. "
+                    f"The relay support_platform '{self.support_platform}' was not declared or initialized. "
                     "The valve cannot be initialized without a support_platform "
-                    "(Please add SwitchBoxMPIKG to the configuration file!)."
+                    f"(Please add '{self.support_platform}' to the configuration file!)."
                 )
 
-        self._io = SwitchBoxMPIKG.INSTANCES[self.support_platform]
+        self._io = Relay.INSTANCES[self.support_platform]
         # Register the standard SolenoidValve component/API on this device
-        self.components.append(BioChemSolenoidValveComponent("valve", self))
+        self.components.append(SolenoidValve("valve", self))
         conf_valve = "normally open" if self.normally_open else "normally closed"
         logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support_platform}' channel {self.channel}!")
 
     async def open(self):
         """
-        Open valve and optionally enter low-power mode.
+        Open the solenoid valve.
+
+        For *normally open* valves, opening the valve requires no power
+        (relay OFF). For *normally closed* valves, opening requires power
+        (relay ON).
 
         Notes
         -----
-        - When `normally_open` is True, opening the valve requires no power
-          (relay value 0) and not energizes the device.
-        - When `normally_open` is False, the behaviour is inverted.
+        - The relay channel index is specified by `self.channel`.
+        - Behavior automatically inverts depending on the `normally_open` flag.
+        - This method delegates to the underlying relay’s ``power_on`` or ``power_off``.
         """
         if self.normally_open:
-            return await self._io.set_relay_single_channel(
-                channel=self.channel,
-                value=0,
-            )
+            return await self._io.power_off(channel=self.channel)
         else:
-            return await self._io.set_relay_single_channel(
-                channel=self.channel,
-                value=2,
-            )
+            return await self._io.power_on(channel=self.channel)
 
     async def close(self):
         """
-        Close valve and optionally enter low-power mode.
+        Close the solenoid valve.
+
+        For *normally open* valves, closing the valve energizes the relay
+        (relay ON). For *normally closed* valves, closing requires no power
+        (relay OFF).
 
         Notes
         -----
-        - When `normally_open` is True, close the valve requires power
-          (relay value 2) and energizes the device.
-        - When `normally_open` is False, the behaviour is inverted.
+        - The relay channel index is specified by `self.channel`.
+        - Behavior automatically inverts depending on the `normally_open` flag.
+        - This method delegates to the underlying relay’s ``power_on`` or ``power_off``.
         """
         if self.normally_open:
-            return await self._io.set_relay_single_channel(
-                channel=self.channel,
-                value=2,
-            )
+            return await self._io.power_on(channel=self.channel)
         else:
-            return await self._io.set_relay_single_channel(
-                channel=self.channel,
-                value=0,
-            )
+            return await self._io.power_off(channel=self.channel)
 
     async def is_open(self) -> bool:
         """
-        Read the current valve status from the switch box.
+        Determine whether the valve is currently open.
+
+        This method queries the relay state using ``await self._io.is_on()`` and
+        infers the flow condition based on the `normally_open` configuration.
 
         Returns
         -------
         bool
-            True if the relay channel is open, False otherwise.
+            True if the valve flow path is open, False otherwise.
 
         Notes
         -----
-        The MPIKG board exposes channels grouped by ports (a, b, c, d) in blocks
-        of 8. This method maps `self.channel` (1–32) to the appropriate port and
-        index, then reads `get_relay_channels()` and returns whether the channel
-        is active and according to valve set up infer if the valve is open or not.
+        - This method interprets the relay’s ON/OFF state according to the valve logic:
+          for a *normally open* valve, an ON relay means *closed*; for a *normally closed*
+          valve, an ON relay means *open*.
         """
-        status = await self._io.get_relay_channels()
-        port, ch = "a", self.channel
-        if 8 < self.channel <= 16:
-            port, ch = "b", self.channel - 8
-        elif 16 < self.channel <= 24:
-            port, ch = "c", self.channel - 16
-        elif 24 < self.channel <= 32:
-            port, ch = "d", self.channel - 24
-        return status[port][ch - 1] > 0 and not self.normally_open or status[port][ch - 1] == 0 and self.normally_open
+        status = await self._io.is_on()
+        if self.normally_open:
+            return not status
+        else:
+            return status
+
+
+class BioChemSolenoid2WayValve(BioChemSolenoidValve):
+
+    async def initialize(self):
+        """
+        Bind the solenoid valve to the configured relay support platform.
+
+        This method polls ``Relay.INSTANCES`` for the configured `support_platform` name.
+        It checks every 0.5 seconds for up to ~3 seconds (6 attempts). Once the relay
+        instance is found, the valve component is registered and becomes operational.
+
+        Raises
+        ------
+        Exception
+            If no matching relay instance is found within the retry window.
+        """
+        n = 0
+        while self.support_platform not in Relay.INSTANCES:
+            await asyncio.sleep(0.5)
+            n += 1
+            if n > 6:
+                raise Exception(
+                    f"The relay support_platform '{self.support_platform}' was not declared or initialized. "
+                    "The valve cannot be initialized without a support_platform "
+                    f"(Please add '{self.support_platform}' to the configuration file!)."
+                )
+
+        self._io = Relay.INSTANCES[self.support_platform]
+        # Register the standard SolenoidValve component/API on this device
+        self.components.append(SolenoidValve2Way("valve", self))
+        conf_valve = "normally open" if self.normally_open else "normally closed"
+        logger.info(f"Connected to BioChemSolenoidValve {conf_valve} on '{self.support_platform}' channel {self.channel}!")

@@ -8,49 +8,92 @@ class Relay(PowerSwitch):
     """
     Relay-based digital switch component.
 
-    This class represents a relay box channel (digital on/off switch) that can be
-    controlled through the Flowchem API. Each channel can be toggled between ON
-    and OFF states, similar to how a hardware relay or solid-state switch behaves.
+    The `Relay` class represents a controllable digital on/off switch channel, typically
+    implemented as a hardware relay or solid-state switch. It can be toggled between
+    ON and OFF states using the Flowchem API.
+
+    Each instance corresponds to a specific relay channel within a physical or virtual
+    relay device.
 
     Ontology:
-        - Subclass of ``saref:Switch`` —
-          A device that can switch something on or off.
+        - **Subclass of**: ``saref:Switch`` — A device capable of switching something on or off.
           (https://w3id.org/saref#Switch)
-        - Performs the function ``saref:OnOffFunction`` or ``saref:OpenCloseFunction``.
+        - **Performs function**: ``saref:OnOffFunction`` or ``saref:OpenCloseFunction``
+
+    Attributes:
+        INSTANCES (dict[str, Relay]): Registry of all Relay instances, keyed by
+            ``"<device_name>/<relay_name>"`` for connection tracking.
     """
+
+    INSTANCES: dict[str, "Relay"] = {}
 
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
         """
         Initialize a Relay component.
 
         Args:
-            name: Human-readable identifier for this relay.
-            hw_device: The underlying FlowchemDevice representing the hardware.
+            name (str): Human-readable identifier for this relay channel.
+            hw_device (FlowchemDevice): The underlying Flowchem device representing the
+                physical or simulated hardware interface.
 
         Notes:
-            - Ontology alignment: modeled as a ``saref:Switch``.
+            - The Relay is modeled as a ``saref:Switch`` performing an ``OnOffFunction``.
+            - Each instance is automatically registered in ``Relay.INSTANCES`` for
+              device-to-component mapping.
         """
         super().__init__(name, hw_device)
 
-        # Ontology: A device of category Switch performing OnOffFunction/OpenCloseFunction.
-        self.component_info.owl_subclass_of.append(
-            "https://w3id.org/saref#Switch",
-        )
+        self.add_api_route("/is-on", self.power_off, methods=["GET"])
 
-    async def power_on(self) -> bool:  # type:ignore[override]
+        # Ontology alignment
+        self.component_info.owl_subclass_of.append("https://w3id.org/saref#Switch")
+
+        # Register instance globally for device-component tracking
+        self.INSTANCES[self.hw_device.name + "/" + self.name] = self
+
+    async def power_on(self, **kwargs) -> bool:  # type:ignore[override]
         """
-        Switch a relay channel ON.
+        Switch the relay channel ON.
+
+        This asynchronous method should send the appropriate ON command to the hardware.
+        It activates the relay, closing the circuit and allowing current flow.
 
         Returns:
-            True if the channel was successfully switched on, False otherwise
+            bool: True if the relay was successfully switched ON, False otherwise.
+
+        Raises:
+            NotImplementedError: If the method is not overridden by a subclass.
         """
         raise NotImplementedError
 
-    async def power_off(self) -> bool:  # type:ignore[override]
+    async def power_off(self, **kwargs) -> bool:  # type:ignore[override]
         """
-        Switch a relay channel OFF.
+        Switch the relay channel OFF.
+
+        This asynchronous method should send the appropriate OFF command to the hardware.
+        It deactivates the relay, opening the circuit and stopping current flow.
 
         Returns:
-            True if the channel was successfully switched off, False otherwise
+            bool: True if the relay was successfully switched OFF, False otherwise.
+
+        Raises:
+            NotImplementedError: If the method is not overridden by a subclass.
         """
         raise NotImplementedError
+
+    async def is_on(self, **kwargs) -> bool:
+        """
+        Check whether the relay is currently ON.
+
+        This asynchronous method queries the current state of the relay channel
+        to determine if it is active (ON) or inactive (OFF).
+
+        Returns:
+            bool: True if the relay is ON, False if it is OFF.
+
+        Raises:
+            NotImplementedError: If the method is not overridden by a subclass.
+        """
+        raise NotImplementedError
+
+

@@ -304,7 +304,6 @@ class SwitchBoxIO:
 
 
 class SwitchBoxMPIKG(FlowchemDevice):
-    INSTANCES: dict[str, SwitchBoxMPIKG] = {}
     """ Switch Box MPIKG module class """
     def __init__(
             self,
@@ -344,9 +343,6 @@ class SwitchBoxMPIKG(FlowchemDevice):
             SwitchBoxRelay("relay-C", self, "c"), # Channel 17 to 24
             SwitchBoxRelay("relay-D", self, "d") # Channel 25 to 32
         ])
-
-        # Keep the instances accessible to the devices connected to it
-        self.INSTANCES[self.name] = self
 
         logger.info(
             f"Connected to SwitchBoxMPIKG on port {self.box_io._serial.port}!")

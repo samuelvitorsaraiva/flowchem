@@ -32,6 +32,74 @@ parity None,     # Parity: None (fixed)
 stopbits 1       # Stopbits: 1 (fixed)
 ```
 
+🔌 Control Devices Connected to a Relay Box
+
+Some Flowchem devices (such as a Switch Box) expose multiple relay, ADC, or DAC components that can be used to 
+control or read from other instruments.
+
+While you can interact directly with the box and its components through the Flowchem API, it’s often more 
+convenient to define which device and component another instrument (like a valve) should use.
+
+This is done by referencing the box instance and its component name using the format:
+
+```
+device_name/component_name
+```
+
+For example, a SwitchBoxMPIKG device may expose several relay components and analog channels:
+
+* my-box/relay-A
+
+* my-box/relay-B
+
+* my-box/relay-C
+
+* my-box/relay-D
+
+* my-box/adc
+
+* my-box/dac
+
+These component identifiers can then be reused by other Flowchem devices (such as valves or pumps) that depend on 
+relay control or analog feedback.
+
+🧩 Example: Attaching a Device to a Relay Box
+
+Below is an example configuration showing how to connect a BioChemSolenoidValve to a specific relay on the box.
+
+```toml
+# Define the control box that provides the relay components
+[device.mybox]
+type = "SwitchBoxMPIKG"
+port = "COM8"
+
+# Define a valve controlled through one relay channel of the box
+[device.valve]
+type = "BioChemSolenoidValve"
+support_platform = "mybox/relay-A"  # Reference to the relay component
+channel = 1                         # Channel number (if multi-channel relay)
+normally_open = 1                   # Valve logic (1 = normally open)
+```
+
+In this example:
+
+* The device mybox represents the control box hardware.
+
+* The relay-A component belongs to that box and provides a digital ON/OFF output.
+
+* The valve device uses that output to control its open/close state.
+
+💡 Notes
+
+* The support_platform must always point to a valid device/component pair already defined in your configuration.
+
+* If the relay component supports multiple channels, the channel parameter specifies which one to use (e.g., channel = 1).
+
+* For single-channel relays, channel can be omitted.
+
+* If the user does not wish to expose the attached device explicitly (e.g., a manually wired solenoid), the corresponding 
+device entry can be omitted from the configuration file.
+
 ## API methods
 
 See the [device API reference](../../api/mpikg_box/api.md) for a description of the available methods.
