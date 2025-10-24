@@ -86,7 +86,7 @@ class SwitchBoxADC(MultiChannelADC):
         value = asw.get(f"ADC{channel}")
         if value:
             return value
-        raise Exception(f"There is no channel '{channel} in ADC ports!'")
+        raise AttributeError(f"There is no channel '{channel} in ADC ports!'")
 
     async def read_all(self) -> dict[str, float]:
         """
@@ -132,6 +132,8 @@ class SwitchBoxRelay(MultiChannelRelay):
 
         self.add_api_route("/lower_power_approach", self.set_lower_power_approach, methods=["PUT"])
 
+        self.add_api_route("/channel_set_point", self.read_channel_set_point, methods=["GET"])
+
     async def power_on(self, channel: str) -> bool:  # type:ignore[override]
         """
         Power ON a single relay channel at full power (~24 V).
@@ -164,7 +166,7 @@ class SwitchBoxRelay(MultiChannelRelay):
         """
         return await self.set_channel(channel, value="0")
 
-    async def multiple_channel(self, values: str) -> bool:
+    async def switch_multiple_channel(self, values: str) -> bool:
         """
         Set the relay states of all 8 channels on the current port simultaneously.
 
@@ -220,7 +222,7 @@ class SwitchBoxRelay(MultiChannelRelay):
         asw = await self.hw_device.get_relay_channels()
         return asw[self.identify][ch - 1]
 
-    async def read_channels_set_point(self) -> list[int]:
+    async def read_multiple_channels_set_point(self) -> list[int]:
         """
         Read the current states of all 8 channels on the current port.
 

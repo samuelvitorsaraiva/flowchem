@@ -65,9 +65,7 @@ class MultiChannelRelay(Relay):
 
         super().__init__(*args, **kwargs)
 
-        self.add_api_route("/multiple_channel", self.multiple_channel, methods=["PUT"])
-
-        self.add_api_route("/channel_set_point", self.read_channel_set_point, methods=["GET"])
+        self.add_api_route("/multiple_channel", self.switch_multiple_channel, methods=["PUT"])
 
         self.add_api_route("/channels_set_point", self.read_channels_set_point, methods=["GET"])
 
@@ -112,7 +110,7 @@ class MultiChannelRelay(Relay):
             raise Exception(f"The component {self.name} from {self.hw_device.name} has not channel: {channel}!!")
 
 
-    async def multiple_channel(self, values: str):
+    async def switch_multiple_channel(self, values: str):
         """
         Set the relay states of all channels.
 
