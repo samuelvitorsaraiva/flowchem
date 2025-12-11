@@ -251,7 +251,7 @@ class SwitchBoxRelay(MultiChannelRelay):
                 Example: "1 s", "500 ms", "2 s".
                 Use "0 s" to disable automatic reduction.
         """
-        value = ureg.Quantity(switch_to_low_after).to("s").magnitude
+        value: float = ureg.Quantity(switch_to_low_after).to("s").magnitude
         if value > 0:
             return await self.hw_device.set_lower_power_approach(
                 port=self.identify, switch_to_low_after=value

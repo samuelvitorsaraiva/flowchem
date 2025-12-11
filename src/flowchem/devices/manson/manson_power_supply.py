@@ -6,6 +6,7 @@ from typing import Literal
 
 import aioserial
 from loguru import logger
+import pint
 
 from flowchem import ureg
 from flowchem.components.device_info import DeviceInfo
@@ -60,13 +61,13 @@ class MansonPowerSupply(FlowchemDevice):
     @staticmethod
     def _format_voltage(voltage_value: str) -> str:
         """Format a voltage in the format the power supply understands."""
-        voltage = ureg.Quantity(voltage_value)
+        voltage: pint.Quantity = ureg.Quantity(voltage_value)
         # Zero fill by left pad with zeros, up to three digits
         return str(voltage.m_as("V") * 10).zfill(3)
 
     async def _format_amperage(self, amperage_value: str) -> str:
         """Format a current intensity in the format the power supply understands."""
-        current = ureg.Quantity(amperage_value)
+        current: pint.Quantity = ureg.Quantity(amperage_value)
         multiplier = 100 if await self.get_info() in self.MODEL_ALT_RANGE else 10
         return str(current.m_as("A") * multiplier).zfill(3)
 
