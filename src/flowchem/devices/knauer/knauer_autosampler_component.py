@@ -3,6 +3,7 @@ from __future__ import annotations
 from flowchem import ureg
 from typing import TYPE_CHECKING, Optional
 from loguru import logger
+import pint
 
 
 if TYPE_CHECKING:
@@ -166,7 +167,7 @@ class AutosamplerPump(SyringePump):
         if volume is None:
             volume = "0 mL"
             logger.warning("the volume to infuse is not provided. set to 0 ml")
-        parsed_volume = ureg.Quantity(volume)
+        parsed_volume: pint.Quantity = ureg.Quantity(volume)
         success = await self.hw_device.dispense(volume=parsed_volume.m_as("mL"))
         if success:
             logger.info(f"Syringe pump successfully infused {volume} ml")
@@ -186,7 +187,7 @@ class AutosamplerPump(SyringePump):
         if volume is None:
             volume = await self.hw_device.syringe_volume()
             logger.warning(f"the volume to withdraw is not provided. set to {self.hw_device.syringe_volume}")
-        parsed_volume = ureg.Quantity(volume)
+        parsed_volume: pint.Quantity = ureg.Quantity(volume)
         success = await self.hw_device.aspirate(volume=parsed_volume.m_as("mL"))
         if success:
             logger.info(f"Syringe pump successfully withdrew {volume} ml")

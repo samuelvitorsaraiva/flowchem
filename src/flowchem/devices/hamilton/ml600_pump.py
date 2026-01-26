@@ -5,6 +5,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from loguru import logger
+import pint
 
 from flowchem import ureg
 from flowchem.components.pumps.syringe_pump import SyringePump
@@ -133,7 +134,7 @@ class ML600Pump(SyringePump):
             rate = self.hw_device.config.get("default_infuse_rate")  # type: ignore
             logger.warning(f"the flow rate is not provided. set to the default {rate}")
         if not volume:
-            target_vol = ureg.Quantity("0 ml")
+            target_vol: pint.Quantity = ureg.Quantity("0 ml")
             logger.warning("the volume to infuse is not provided. set to 0 ml")
         else:
             current_volume = await self.hw_device.get_current_volume(self.pump_code)
@@ -195,5 +196,8 @@ class ML600Pump(SyringePump):
                 # return False
 
         await self.hw_device.set_to_volume(target_vol, ureg.Quantity(rate), self.pump_code)
-        logger.info(f"withdrawing is run. it will take {ureg.Quantity(volume) / ureg.Quantity(rate)} to finish.")
+        logger.info(
+            "withdrawing is run. it will take "
+            f"{ureg.Quantity(volume if volume else self.hw_device.syringe_volume) / ureg.Quantity(rate)} to finish."
+        )
         return await self.hw_device.get_pump_status(self.pump_code)

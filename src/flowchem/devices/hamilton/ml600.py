@@ -333,7 +333,7 @@ class ML600(FlowchemDevice):
         # Syringe pumps only perform linear movement, and the volume displaced is function of the syringe loaded.
         try:
             # todo: set syringe_volume to a dict/str??
-            self.syringe_volume = ureg.Quantity(syringe_volume)
+            self.syringe_volume: pint.Quantity = ureg.Quantity(syringe_volume)
         except AttributeError as attribute_error:
             logger.error(f"Invalid syringe volume {syringe_volume}!")
             raise InvalidConfigurationError(
@@ -347,7 +347,7 @@ class ML600(FlowchemDevice):
                 f"The volume (in ml) has to be one of {ML600.VALID_SYRINGE_VOLUME}"
             )
 
-        self._steps_per_ml = ureg.Quantity(f"{48000 / self.syringe_volume} step")
+        self._steps_per_ml: pint.Quantity = ureg.Quantity(f"{48000 / self.syringe_volume} step")
         # todo: check
         # self._offset_steps = 100  # Steps added to each absolute move command, to decrease wear and tear at volume = 0
         # self._max_vol = (48000 - self._offset_steps) * ureg.step / self._steps_per_ml

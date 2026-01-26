@@ -291,7 +291,7 @@ class Elite11(FlowchemDevice):
         # parsed_f = ureg.Quantity(flow)
 
         # Also add units to the provided rate
-        set_rate = ureg.Quantity(rate)
+        set_rate: pint.Quantity = ureg.Quantity(rate)
 
         # Bound rate to acceptance range
         if set_rate < lower_limit:
@@ -375,7 +375,7 @@ class Elite11(FlowchemDevice):
         """Set target volume in ml. If the volume is set to 0, the target is cleared."""
         await self._send_command_and_read_reply("cvolume")
 
-        target_volume = ureg.Quantity(volume)
+        target_volume: pint.Quantity = ureg.Quantity(volume)
         if target_volume.magnitude == 0:
             await self._send_command_and_read_reply("ctvolume")
         else:
