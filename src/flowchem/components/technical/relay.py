@@ -43,7 +43,7 @@ class Relay(PowerSwitch):
         """
         super().__init__(name, hw_device)
 
-        self.add_api_route("/is-on", self.power_off, methods=["GET"])
+        self.add_api_route("/is-on", self.is_on, methods=["GET"])
 
         # Ontology alignment
         self.component_info.owl_subclass_of.append("https://w3id.org/saref#Switch")
