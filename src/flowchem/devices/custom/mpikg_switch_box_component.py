@@ -222,7 +222,7 @@ class SwitchBoxRelay(MultiChannelRelay):
         asw = await self.hw_device.get_relay_channels()
         return asw[self.identify][ch - 1]
 
-    async def read_multiple_channels_set_point(self) -> list[int]:
+    async def read_channels_set_point(self) -> list[int]:
         """
         Read the current states of all 8 channels on the current port.
 
