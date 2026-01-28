@@ -104,7 +104,11 @@ class MultiChannelRelay(Relay):
             bool: True if the relay is ON, False if it is OFF.
         """
         value = await self.read_channel_set_point(channel)
-        return value > 0
+        if value is not None:
+            return value > 0
+        else:
+            raise Exception(f"The component {self.name} from {self.hw_device.name} has not channel: {channel}!!")
+
 
     async def switch_multiple_channel(self, values: str):
         """
