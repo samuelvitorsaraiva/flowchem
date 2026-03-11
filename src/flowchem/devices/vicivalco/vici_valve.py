@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 import aioserial
 from loguru import logger
+import pint
 
 from flowchem import ureg
 from flowchem.components.device_info import DeviceInfo
@@ -216,7 +217,7 @@ class ViciValve(FlowchemDevice):
 
     async def timed_toggle(self, injection_time: str):
         """Switch valve to a position for a given time."""
-        delay = ureg.Quantity(injection_time).to("ms")
+        delay: pint.Quantity = ureg.Quantity(injection_time).to("ms")
         set_delay = ViciCommand(
             valve_id=self.address,
             command="DT",

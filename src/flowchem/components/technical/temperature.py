@@ -43,7 +43,7 @@ class TemperatureControl(FlowchemComponent):
         if temp.isnumeric():
             temp = temp + "°C"
             logger.warning("No units provided to set_temperature, assuming Celsius.")
-        set_t = ureg.Quantity(temp)
+        set_t: pint.Quantity = ureg.Quantity(temp)
 
         if set_t < self._limits[0]:
             set_t = self._limits[0]

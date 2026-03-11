@@ -4,6 +4,7 @@ import asyncio
 # Manufacturer package, see https://bronkhorst-propar.readthedocs.io/en/latest/introduction.html.
 import propar
 from loguru import logger
+import pint
 
 from flowchem import ureg
 from flowchem.devices.bronkhorst.el_flow_component import EPCComponent, MFCComponent
@@ -115,7 +116,7 @@ class EPC(FlowchemDevice):
         if pressure.isnumeric() or isfloat(pressure):
             pressure = pressure + "bar"
             logger.warning("No units provided to set_pressure, assuming bar.")
-        set_p = ureg.Quantity(pressure)
+        set_p: pint.Quantity = ureg.Quantity(pressure)
         set_n = round(set_p.m_as("bar") * 32000 / self.max_pressure)
         if set_n > 32000:
             self.el_press.setpoint = 32000
@@ -248,7 +249,7 @@ class MFC(FlowchemDevice):
                 "No units provided to set_flow_rate, assuming milliliter/minutes.",
             )
 
-        set_f = ureg.Quantity(flowrate)
+        set_f: pint.Quantity = ureg.Quantity(flowrate)
         set_n = round(set_f.m_as("ml/min") * 32000 / self.max_flow)
         if set_n > 32000:
             self.el_flow.setpoint = 32000

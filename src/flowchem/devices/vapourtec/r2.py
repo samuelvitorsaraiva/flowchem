@@ -290,7 +290,7 @@ class R2(FlowchemDevice):
             logger.warning(
                 "No units provided to set_temperature, assuming microliter/minutes.",
             )
-        parsed_f = ureg.Quantity(flowrate)
+        parsed_f: pint.Quantity = ureg.Quantity(flowrate)
 
         if pump == "A":
             pump_num = 0
@@ -348,7 +348,7 @@ class R2(FlowchemDevice):
         if pressure.isnumeric():
             pressure = pressure + "mbar"
             logger.warning("No units provided to set_temperature, assuming mbar.")
-        set_p = ureg.Quantity(pressure)
+        set_p: pint.Quantity = ureg.Quantity(pressure)
 
         cmd = self.cmd.SET_MAX_PRESSURE.format(
             max_p_in_mbar=round(set_p.m_as("mbar") / 500) * 500,

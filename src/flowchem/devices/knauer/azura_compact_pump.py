@@ -7,6 +7,8 @@ from loguru import logger
 
 from flowchem import ureg
 
+import pint
+
 if TYPE_CHECKING:
     from .azura_compact import AzuraCompact
 from flowchem.components.pumps.hplc_pump import HPLCPump
@@ -79,7 +81,7 @@ class AzuraCompactPump(HPLCPump):
             rate += " ml/min"
             logger.warning("Units missing, assuming ml/min!")
 
-        parsed_rate = ureg.Quantity(rate)
+        parsed_rate: pint.Quantity = ureg.Quantity(rate)
 
         await self.hw_device.set_flow_rate(rate=parsed_rate)
         return await self.hw_device.infuse()

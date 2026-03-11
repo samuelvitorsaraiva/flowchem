@@ -61,7 +61,7 @@ class Clarity(FlowchemDevice):
         name : str
             The name of the Clarity instance.
         executable : str, optional
-            Path to the ClarityChrom executable (default is r"C:\claritychrom\bin\claritychrom.exe").
+            Path to the ClarityChrom executable (default is C:/claritychrom/bin/claritychrom.exe).
         instrument_number : int, optional
             The instrument number to control (default is 1).
         startup_time : float, optional
@@ -74,7 +74,7 @@ class Clarity(FlowchemDevice):
             The username for ClarityChrom (default is "admin").
         password : str, optional
             The password for ClarityChrom (default is an empty string).
-        cfg_file : str, optional (PATH\FILENAME)
+        cfg_file : str, optional (PATH/FILENAME)
             The configuration file for ClarityChrom (default is an empty string).
         """
         super().__init__(name=name)
