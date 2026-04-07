@@ -54,13 +54,19 @@ class FastAPIServer:
             return self.configuration_dict
 
     def add_background_tasks(self, repeated_tasks: Iterable[RepeatedTaskInfo]):
-        """Schedule repeated tasks to run upon server startup."""
+        """Schedule repeated tasks to run upon server startup.
+
+        Note: each task is bound via a default argument to avoid the classic
+        Python loop-closure pitfall where all closures would otherwise share
+        the last value of the loop variable.
+        """
         for seconds_delay, task in repeated_tasks:
+            # `t=task` captures the current task by value, not by reference.
             @self.app.on_event("startup")
             @repeat_every(seconds=seconds_delay)
-            async def my_task():
+            async def _repeated_task(t=task):
                 logger.debug("Running repeated task...")
-                await task()
+                await t()
 
     def add_device(self, device):
         """Add device to server."""
