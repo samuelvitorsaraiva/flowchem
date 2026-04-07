@@ -1,7 +1,7 @@
 from __future__ import annotations
 from flowchem.components.fakecomponentclass.fakecomponent import FakeComponent
 from flowchem.devices.flowchem_device import FlowchemDevice
-import time
+import asyncio
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -25,7 +25,8 @@ class FakeSpecificComponent(FakeComponent):
                         parameter_1 (str): in a specific unit (e.g. 3 ml). The value must be within (0 to 40 ml)
                         parameter_2 (str): in a specific unit (e.g. 4 min). The value must be within (0 to 32 min)
         """
-        time.sleep(2)  # Simulated the delay to run a actuator, for example!
+        # Use asyncio.sleep instead of time.sleep to avoid blocking the event loop.
+        await asyncio.sleep(2)
 
         await self.hw_device.send_command(f'Send a command to the FakeDevice with parameter_1: {parameter_1} and '
                                           f'parameter_2: {parameter_2}')
@@ -47,7 +48,7 @@ class FakeSpecificComponent(FakeComponent):
         command: str
 
         Returns:
-            None
+            bool: True if the command was sent successfully.
         """
         await self.hw_device.send_command(f'Set a specific command: {command}')
         return True  # If everything works appropriately the function will return a True
@@ -69,7 +70,8 @@ class FakeSpecificComponent2(FakeComponent):
                         parameter_1 (str): in a specific unit (e.g. 3 ml). The value must be within (0 to 40 ml)
                         parameter_2 (str): in a specific unit (e.g. 4 min). The value must be within (0 to 32 min)
         """
-        time.sleep(2) # Simulated the delay to run a actuator, for example!
+        # Use asyncio.sleep instead of time.sleep to avoid blocking the event loop.
+        await asyncio.sleep(2)
 
         await self.hw_device.send_command(f'Send a command to the FakeDevice with parameter_1: {parameter_1} and '
                                           f'parameter_2: {parameter_2}')
@@ -89,7 +91,7 @@ class FakeSpecificComponent2(FakeComponent):
         This is an example of a specific command that only this device has!
 
         Returns:
-            None
+            bool: True if the command was sent successfully.
         """
         await self.hw_device.send_command('Set a specific command')
         return True  # If everything works appropriately the function will return a True
