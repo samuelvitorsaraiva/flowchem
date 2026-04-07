@@ -1,9 +1,13 @@
 """ML600 component relative to valve switching."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flowchem.components.valves.distribution_valves import ThreePortFourPositionValve, FourPortFivePositionValve
+from flowchem.components.valves.distribution_valves import (
+    ThreePortFourPositionValve,
+    FourPortFivePositionValve,
+)
 
 if TYPE_CHECKING:
     from .ml600 import ML600
@@ -16,6 +20,7 @@ class ML600LeftValve(FourPortFivePositionValve):
     def __init__(self, name: str, hw_device: ML600, identifier: str = "") -> None:
         super().__init__(name, hw_device)
         self.identifier = identifier
+
     # 0 degree syr-left,
     # 45 right-front
     # 90 nothing
@@ -52,6 +57,7 @@ class ML600RightValve(ThreePortFourPositionValve):
     _change_connections(raw_position: int, reverse: bool = False) -> int:
         Translate the raw position to the corresponding degree or reverse.
     """
+
     hw_device: ML600  # for typing's sake
     identifier: str
 
@@ -76,4 +82,3 @@ class ML600RightValve(ThreePortFourPositionValve):
                 translated -= 2
 
         return str(translated)
-

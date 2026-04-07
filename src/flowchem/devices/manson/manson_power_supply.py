@@ -1,4 +1,5 @@
 """Control module for Manson lab power supply unites."""
+
 # Note: Original code from Manson website with edits. No license originally specified.
 import re
 import warnings

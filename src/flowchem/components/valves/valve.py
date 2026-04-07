@@ -1,4 +1,5 @@
 """Generic valve."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -38,7 +39,9 @@ def return_bool_from_input(str_or_bool):
         elif str_or_bool == "":
             return None
         else:
-            raise DeviceError("Please provide input of type bool, '' or 'True' or 'False'")
+            raise DeviceError(
+                "Please provide input of type bool, '' or 'True' or 'False'"
+            )
 
 
 class ValveInfo(BaseModel):
@@ -47,12 +50,15 @@ class ValveInfo(BaseModel):
     positions: an attribute mapping implicit, tacit numbers as keys to the stator ports that are connected at this
                 position
     """
+
     ports: list[tuple]
     positions: dict[int, tuple[tuple[None | int, ...], ...]]
 
 
-def all_tuples_in_nested_tuple(tuple_in: tuple[tuple[int, int], ...],
-                               tuple_contains: tuple[tuple[int, int, ...], ...]) -> bool:
+def all_tuples_in_nested_tuple(
+    tuple_in: tuple[tuple[int, int], ...],
+    tuple_contains: tuple[tuple[int, int, ...], ...],
+) -> bool:
     """Check if all requested tuples are in a tuple of tuples"""
     all_contained = []
     for subtuple in tuple_in:
@@ -66,8 +72,10 @@ def all_tuples_in_nested_tuple(tuple_in: tuple[tuple[int, int], ...],
         return False
 
 
-def no_tuple_in_nested_tuple(tuple_in: tuple[tuple[int, int], ...],
-                             tuple_contains: tuple[tuple[int, int, ...], ...]) -> bool:
+def no_tuple_in_nested_tuple(
+    tuple_in: tuple[tuple[int, int], ...],
+    tuple_contains: tuple[tuple[int, int, ...], ...],
+) -> bool:
     """Check if none of requested tuples are in a tuple of tuples"""
     contains_tuple = False
     for subtuple in tuple_in:
@@ -94,11 +102,11 @@ class Valve(FlowchemComponent):
     """
 
     def __init__(
-            self,
-            name: str,
-            hw_device: "FlowchemDevice",
-            stator_ports: [(), ()],  # type: ignore
-            rotor_ports: [(), ()],  # type: ignore
+        self,
+        name: str,
+        hw_device: "FlowchemDevice",
+        stator_ports: [(), ()],  # type: ignore
+        rotor_ports: [(), ()],  # type: ignore
     ) -> None:
         """Create a valve object.
 
@@ -145,7 +153,9 @@ class Valve(FlowchemComponent):
         # Open/closed valves, need not be treated here but could be simulated by a [1,2,None] and rotor [3,3,None]
         self._rotor_ports = rotor_ports
         self._stator_ports = stator_ports
-        self._positions = self._create_connections(self._stator_ports, self._rotor_ports)
+        self._positions = self._create_connections(
+            self._stator_ports, self._rotor_ports
+        )
 
         super().__init__(name, hw_device)
 
@@ -178,7 +188,9 @@ class Valve(FlowchemComponent):
         for _ in range(len(rotor_ports[0])):
             rotor_curr = rotor_ports[0][-_:] + rotor_ports[0][:-_]
             _connections_per_position = {}
-            for rotor_position, stator_position in zip(rotor_curr + rotor_ports[1], stator_ports[0] + stator_ports[1]):
+            for rotor_position, stator_position in zip(
+                rotor_curr + rotor_ports[1], stator_ports[0] + stator_ports[1]
+            ):
                 # rotor positions act as dictionary keys, take into account the [1] position for connecting the 0
                 # if dict key exists, instead of overwriting, simply append
                 # if rotor is none, means there is no connection, so do not add
@@ -222,10 +234,12 @@ class Valve(FlowchemComponent):
         """
         raise NotImplementedError
 
-    def _connect_positions(self,
-                           positions_to_connect: tuple[tuple],
-                           positions_not_to_connect: tuple[tuple] = None,
-                           arbitrary_switching: bool = True) -> int:
+    def _connect_positions(
+        self,
+        positions_to_connect: tuple[tuple],
+        positions_not_to_connect: tuple[tuple] = None,
+        arbitrary_switching: bool = True,
+    ) -> int:
         """
         This is the heart of valve switching logic: select the suitable position (so actually the key in
         self._positions) to create desired connections
@@ -234,15 +248,18 @@ class Valve(FlowchemComponent):
         # check if this is possible given the mapping
         for key, values in self._positions.items():
             if positions_not_to_connect:
-                if all_tuples_in_nested_tuple(positions_to_connect, values) and no_tuple_in_nested_tuple(
-                        positions_not_to_connect, values):
+                if all_tuples_in_nested_tuple(
+                    positions_to_connect, values
+                ) and no_tuple_in_nested_tuple(positions_not_to_connect, values):
                     possible_positions.append(key)
             elif all_tuples_in_nested_tuple(positions_to_connect, values):
                 possible_positions.append(key)
         if len(possible_positions) > 1:
             if not arbitrary_switching:
-                raise DeviceError("There are multiple positions for the valve to connect your specified ports. "
-                                  "Either allow arbitrary switching, or specify which connections not to connect")
+                raise DeviceError(
+                    "There are multiple positions for the valve to connect your specified ports. "
+                    "Either allow arbitrary switching, or specify which connections not to connect"
+                )
             elif arbitrary_switching:
                 return possible_positions[0]
             else:
@@ -251,8 +268,10 @@ class Valve(FlowchemComponent):
             return possible_positions[0]
         else:
             # this means length == 0, no connection possible
-            raise DeviceError("Connection is not possible. The valve you selected can not connect selected ports."
-                              "This can be due to exclusion of certain connections by setting positions_not_to_connect")
+            raise DeviceError(
+                "Connection is not possible. The valve you selected can not connect selected ports."
+                "This can be due to exclusion of certain connections by setting positions_not_to_connect"
+            )
 
     async def get_position(self) -> List[List[Optional[int]]]:
         """Get current valve position."""
@@ -264,16 +283,21 @@ class Valve(FlowchemComponent):
             pos = int(pos)
         return self._positions[int(self._change_connections(pos, reverse=True))]
 
-    async def set_position(self,
-                           connect: str = "",
-                           disconnect: str = "",
-                           ambiguous_switching: str | bool = False) -> bool:
+    async def set_position(
+        self,
+        connect: str = "",
+        disconnect: str = "",
+        ambiguous_switching: str | bool = False,
+    ) -> bool:
         """Move valve to position, which connects named ports"""
         connect = return_tuple_from_input(connect)
         disconnect = return_tuple_from_input(disconnect)
         ambiguous_switching = return_bool_from_input(ambiguous_switching)
-        target_pos = self._connect_positions(positions_to_connect=connect, positions_not_to_connect=disconnect,
-                                             arbitrary_switching=ambiguous_switching)
+        target_pos = self._connect_positions(
+            positions_to_connect=connect,
+            positions_not_to_connect=disconnect,
+            arbitrary_switching=ambiguous_switching,
+        )
         target_pos = self._change_connections(target_pos)
         if not hasattr(self, "identifier"):
             await self.hw_device.set_raw_position(target_pos)

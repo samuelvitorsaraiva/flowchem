@@ -1,4 +1,5 @@
 """Huber TemperatureControl component."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -17,6 +18,7 @@ class HuberTemperatureControl(TemperatureControl):
     Attributes:
         hw_device (HuberChiller): The hardware device controlling the temperature.
     """
+
     hw_device: HuberChiller  # for typing's sake
 
     async def set_temperature(self, temp: str):

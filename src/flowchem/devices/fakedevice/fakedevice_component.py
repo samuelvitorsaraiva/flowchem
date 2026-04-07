@@ -4,6 +4,7 @@ from flowchem.devices.flowchem_device import FlowchemDevice
 import asyncio
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .fakedevice import FakeDeviceExample
 
@@ -15,7 +16,9 @@ class FakeSpecificComponent(FakeComponent):
 
     def __init__(self, name: str, hw_device: FakeDeviceExample) -> None:
         super().__init__(name, hw_device)
-        self.add_api_route("/set_specific_command", self.set_specific_command, methods=["PUT"])
+        self.add_api_route(
+            "/set_specific_command", self.set_specific_command, methods=["PUT"]
+        )
 
     async def fake_send_command(self, parameter_1: str = "", parameter_2: str = "") -> bool:  # type: ignore
         """
@@ -28,8 +31,10 @@ class FakeSpecificComponent(FakeComponent):
         # Use asyncio.sleep instead of time.sleep to avoid blocking the event loop.
         await asyncio.sleep(2)
 
-        await self.hw_device.send_command(f'Send a command to the FakeDevice with parameter_1: {parameter_1} and '
-                                          f'parameter_2: {parameter_2}')
+        await self.hw_device.send_command(
+            f"Send a command to the FakeDevice with parameter_1: {parameter_1} and "
+            f"parameter_2: {parameter_2}"
+        )
         return True  # If everything works appropriately the function will return a True
 
     async def fake_receive_data(self) -> float:  # type: ignore
@@ -38,7 +43,7 @@ class FakeSpecificComponent(FakeComponent):
 
         This function demonstrates how the commands request of data can be sent through the API build
         """
-        await self.hw_device.send_command('Request a data from the FakeDevice')
+        await self.hw_device.send_command("Request a data from the FakeDevice")
         return 0.5  # Generic data to show how it works
 
     async def set_specific_command(self, command: str = "command") -> bool:
@@ -50,7 +55,7 @@ class FakeSpecificComponent(FakeComponent):
         Returns:
             bool: True if the command was sent successfully.
         """
-        await self.hw_device.send_command(f'Set a specific command: {command}')
+        await self.hw_device.send_command(f"Set a specific command: {command}")
         return True  # If everything works appropriately the function will return a True
 
 
@@ -60,7 +65,9 @@ class FakeSpecificComponent2(FakeComponent):
 
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
         super().__init__(name, hw_device)
-        self.add_api_route("/set_specific_command", self.set_specific_command, methods=["PUT"])
+        self.add_api_route(
+            "/set_specific_command", self.set_specific_command, methods=["PUT"]
+        )
 
     async def fake_send_command(self, parameter_1: str = "", parameter_2: str = "") -> bool:  # type: ignore
         """
@@ -73,8 +80,10 @@ class FakeSpecificComponent2(FakeComponent):
         # Use asyncio.sleep instead of time.sleep to avoid blocking the event loop.
         await asyncio.sleep(2)
 
-        await self.hw_device.send_command(f'Send a command to the FakeDevice with parameter_1: {parameter_1} and '
-                                          f'parameter_2: {parameter_2}')
+        await self.hw_device.send_command(
+            f"Send a command to the FakeDevice with parameter_1: {parameter_1} and "
+            f"parameter_2: {parameter_2}"
+        )
         return True  # If everything works appropriately the function will return a True
 
     async def fake_receive_data(self) -> float:  # type: ignore
@@ -83,7 +92,7 @@ class FakeSpecificComponent2(FakeComponent):
 
         This function demonstrates how the commands request of data can be sent through the API build
         """
-        await self.hw_device.send_command('Request a data from the FakeDevice')
+        await self.hw_device.send_command("Request a data from the FakeDevice")
         return 0.5  # Generic data to show how it works
 
     async def set_specific_command(self) -> bool:
@@ -93,5 +102,5 @@ class FakeSpecificComponent2(FakeComponent):
         Returns:
             bool: True if the command was sent successfully.
         """
-        await self.hw_device.send_command('Set a specific command')
+        await self.hw_device.send_command("Set a specific command")
         return True  # If everything works appropriately the function will return a True

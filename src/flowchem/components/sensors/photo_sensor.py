@@ -1,4 +1,5 @@
 """Pressure sensor."""
+
 from flowchem.devices.flowchem_device import FlowchemDevice
 
 from .sensor import Sensor
@@ -20,8 +21,6 @@ class PhotoSensor(Sensor):
         """Read from sensor, result to be expressed in % (optional)."""
         ...
 
-    async def power_on(self):
-        ...
+    async def power_on(self): ...
 
-    async def power_off(self):
-        ...
+    async def power_off(self): ...

@@ -1,4 +1,5 @@
 """Sensor device."""
+
 from __future__ import annotations
 
 from flowchem.components.technical.ADC import AnalogDigitalConverter

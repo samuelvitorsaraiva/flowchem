@@ -1,4 +1,5 @@
 """Vici valve component."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -16,7 +17,9 @@ class ViciInjectionValve(SixPortTwoPositionValve):
         self.add_api_route("/timed_toggle", self.timed_toggle, methods=["PUT"])
 
     # todo this needs to be adapted to new code
-    def _change_connections(self, raw_position: int | str, reverse: bool = False) -> str:
+    def _change_connections(
+        self, raw_position: int | str, reverse: bool = False
+    ) -> str:
         # TODO maybe needs addition of one, not sure
         if not reverse:
             translated = str(raw_position)

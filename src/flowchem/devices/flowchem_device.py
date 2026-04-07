@@ -1,4 +1,5 @@
 """Base object for all hardware-control device classes."""
+
 from abc import ABC
 from collections import namedtuple
 from typing import TYPE_CHECKING

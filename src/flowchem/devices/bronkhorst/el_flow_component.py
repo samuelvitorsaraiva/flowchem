@@ -31,6 +31,7 @@ class EPCComponent(PressureSensor):
     read_pressure(units: str = "bar"):
         Read the current pressure from the sensor and return it in the specified units.
     """
+
     hw_device: EPC  # just for typing
 
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:
@@ -127,6 +128,7 @@ class MFCComponent(FlowchemComponent):
     stop() -> bool:
         Stop the mass flow controller.
     """
+
     hw_device: MFC  # just for typing
 
     def __init__(self, name: str, hw_device: FlowchemDevice) -> None:

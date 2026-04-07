@@ -91,12 +91,15 @@ Get version and help
 | help        |            |
 
 """
+
 from __future__ import annotations
 
 from pint.registry import Quantity
 
 from flowchem.devices.custom.mpikg_switch_box_component import (
-    SwitchBoxADC, SwitchBoxRelay, SwitchBoxDAC
+    SwitchBoxADC,
+    SwitchBoxRelay,
+    SwitchBoxDAC,
 )
 from flowchem.devices.flowchem_device import FlowchemDevice
 from flowchem.components.device_info import DeviceInfo
@@ -108,29 +111,34 @@ from enum import StrEnum
 import aioserial
 import asyncio
 
-
 BEFE_RELE_BITS = 16
 ADC_VOLTS = 5
 DAC_BITS = 4096
 DAC_VOLTS = 10
 
+
 def bit_to_int(bits: list[int]) -> int:
     return int("".join(str(b) for b in bits), 2)
 
+
 def int_to_bit_list(value: int, length: int = 16) -> list[int]:
-    bits = list(map(int, bin(value)[2:]))  # convert to binary string, strip "0b", then to list of ints
+    bits = list(
+        map(int, bin(value)[2:])
+    )  # convert to binary string, strip "0b", then to list of ints
     if length is not None:  # pad with leading zeros if length is given
         bits = [0] * (length - len(bits)) + bits
     return bits
 
 
 class SwitchBoxException(Exception):
-    """ General Switch Box exception """
+    """General Switch Box exception"""
+
     pass
 
 
 class InvalidConfiguration(SwitchBoxException):
-    """ Used for failure in the serial communication """
+    """Used for failure in the serial communication"""
+
     pass
 
 
@@ -162,7 +170,8 @@ class BefrelayPorts(StrEnum):
 
 @dataclass
 class SwitchBoxBeferelayCommand:
-    """ Class representing a box command for Beferelay Ports and its expected reply """
+    """Class representing a box command for Beferelay Ports and its expected reply"""
+
     request: InfRequest = InfRequest.SET
     port: str = BefrelayPorts.A.value
     bits_command: int = 0
@@ -186,14 +195,15 @@ class SwitchBoxBeferelayCommand:
 
 @dataclass
 class SwitchBoxGeneralCommand:
-    """ Class representing a box command ADC/DAC Commands and its expected reply """
+    """Class representing a box command ADC/DAC Commands and its expected reply"""
+
     channel: int | str = 0
     request: InfRequest = InfRequest.SET
     variable: VariableType = VariableType.ADC
     reply_lines: int = 1
     value: int = 0
 
-    def compile(self)->bytes:
+    def compile(self) -> bytes:
         """
         Create actual command byte by prepending box address to command.
         """
@@ -211,7 +221,7 @@ class SwitchBoxGeneralCommand:
 
 
 class SwitchBoxIO:
-    """ Setup with serial parameters, low level IO"""
+    """Setup with serial parameters, low level IO"""
 
     DEFAULT_CONFIG = {
         "timeout": 1,
@@ -247,8 +257,10 @@ class SwitchBoxIO:
 
         return cls(serial_object)
 
-    async def _write(self, command: SwitchBoxGeneralCommand | SwitchBoxBeferelayCommand):
-        """ Writes a command to the box """
+    async def _write(
+        self, command: SwitchBoxGeneralCommand | SwitchBoxBeferelayCommand
+    ):
+        """Writes a command to the box"""
         command_compiled = command.compile()
         logger.debug(f"Sending {command_compiled!r}")
         try:
@@ -257,7 +269,7 @@ class SwitchBoxIO:
             raise InvalidConfiguration from e
 
     async def _read_reply(self, command) -> str:
-        """ Reads the box reply from serial communication """
+        """Reads the box reply from serial communication"""
         logger.debug(
             f"I am going to read {command.reply_lines} line for this command (+prompt)"
         )
@@ -279,7 +291,7 @@ class SwitchBoxIO:
         return reply_string
 
     def reset_buffer(self):
-        """ Reset input buffer before reading from serial. In theory not necessary if all replies are consumed... """
+        """Reset input buffer before reading from serial. In theory not necessary if all replies are consumed..."""
         try:
             self._serial.reset_input_buffer()
         except aioserial.SerialException as e:
@@ -288,7 +300,7 @@ class SwitchBoxIO:
     async def write_and_read_reply(
         self, command: SwitchBoxGeneralCommand | SwitchBoxBeferelayCommand
     ) -> str:
-        """ Main SwitchBoxIO method. Sends a command to the box, reads the replies and returns it, optionally parsed """
+        """Main SwitchBoxIO method. Sends a command to the box, reads the replies and returns it, optionally parsed"""
         async with self.lock:
             self.reset_buffer()
             await self._write(command)
@@ -304,12 +316,9 @@ class SwitchBoxIO:
 
 
 class SwitchBoxMPIKG(FlowchemDevice):
-    """ Switch Box MPIKG module class """
-    def __init__(
-            self,
-            box_io: SwitchBoxIO,
-            name: str = ""
-    ) -> None:
+    """Switch Box MPIKG module class"""
+
+    def __init__(self, box_io: SwitchBoxIO, name: str = "") -> None:
         super().__init__(name)
         self.box_io = box_io
         self.device_info = DeviceInfo(
@@ -321,10 +330,10 @@ class SwitchBoxMPIKG(FlowchemDevice):
 
     @classmethod
     def from_config(
-            cls,
-            port: str,
-            name: str = "",
-            **serial_kwargs,
+        cls,
+        port: str,
+        name: str = "",
+        **serial_kwargs,
     ):
         switch_io = SwitchBoxIO.from_config(port, **serial_kwargs)
 
@@ -332,24 +341,28 @@ class SwitchBoxMPIKG(FlowchemDevice):
 
     async def initialize(self):
         self.device_info.version = await self.box_io.write_and_read_reply(
-            command=SwitchBoxGeneralCommand(request=InfRequest.GET,
-                                            variable=VariableType.VERSION)
+            command=SwitchBoxGeneralCommand(
+                request=InfRequest.GET, variable=VariableType.VERSION
+            )
         )
-        self.components.extend([
-            SwitchBoxADC("adc", self),
-            SwitchBoxDAC("dac", self),
-            SwitchBoxRelay("relay-A", self, "a"), # Channel 1 to 8
-            SwitchBoxRelay("relay-B", self, "b"), # Channel 9 to 16
-            SwitchBoxRelay("relay-C", self, "c"), # Channel 17 to 24
-            SwitchBoxRelay("relay-D", self, "d") # Channel 25 to 32
-        ])
+        self.components.extend(
+            [
+                SwitchBoxADC("adc", self),
+                SwitchBoxDAC("dac", self),
+                SwitchBoxRelay("relay-A", self, "a"),  # Channel 1 to 8
+                SwitchBoxRelay("relay-B", self, "b"),  # Channel 9 to 16
+                SwitchBoxRelay("relay-C", self, "c"),  # Channel 17 to 24
+                SwitchBoxRelay("relay-D", self, "d"),  # Channel 25 to 32
+            ]
+        )
 
-        logger.info(
-            f"Connected to SwitchBoxMPIKG on port {self.box_io._serial.port}!")
+        logger.info(f"Connected to SwitchBoxMPIKG on port {self.box_io._serial.port}!")
 
     """ Set to lower power appraoch """
 
-    async def set_lower_power_approach(self, port: str = "a", switch_to_low_after: float = -1):
+    async def set_lower_power_approach(
+        self, port: str = "a", switch_to_low_after: float = -1
+    ):
         """
         Configure automatic switching from full power to half power after a delay.
 
@@ -367,11 +380,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
 
     """ Port Befehle """
 
-    async def set_relay_port(
-            self,
-            values: list[int],
-            port: str = "a"
-    ):
+    async def set_relay_port(self, values: list[int], port: str = "a"):
         """Set all 8 relay channels of a given port.
 
         Each channel can be set to:
@@ -414,19 +423,17 @@ class SwitchBoxMPIKG(FlowchemDevice):
         bits_power2 = [0] * int(BEFE_RELE_BITS / 2)  # channels 8 to 1
         for i, v in enumerate(values):
             if v == 2:
-                """ Full power """
+                """Full power"""
                 bits_power1[-(i + 1)] = 1
                 bits_power2[-(i + 1)] = 1
             elif v == 1:
                 bits_power1[-(i + 1)] = 1
 
-        bits_command = bit_to_int(bits_power1+bits_power2)
+        bits_command = bit_to_int(bits_power1 + bits_power2)
 
         status = await self.box_io.write_and_read_reply(
             command=SwitchBoxBeferelayCommand(
-                port=port,
-                request=InfRequest.SET,
-                bits_command=bits_command
+                port=port, request=InfRequest.SET, bits_command=bits_command
             )
         )
         if not status.startswith("OK"):
@@ -437,21 +444,20 @@ class SwitchBoxMPIKG(FlowchemDevice):
                     bits_power2[-(i + 1)] = 0
             await asyncio.sleep(self.low_power_after[port])
 
-        bits_command = bit_to_int(bits_power1+bits_power2)
+        bits_command = bit_to_int(bits_power1 + bits_power2)
         status = await self.box_io.write_and_read_reply(
             command=SwitchBoxBeferelayCommand(
-                port=port,
-                request=InfRequest.SET,
-                bits_command=bits_command)
+                port=port, request=InfRequest.SET, bits_command=bits_command
+            )
         )
         return status.startswith("OK")
 
     async def set_relay_single_channel(
-            self,
-            channel: int,
-            value: int = 2,
-            keep_port_status = True,
-            port_identify: str = "a"
+        self,
+        channel: int,
+        value: int = 2,
+        keep_port_status=True,
+        port_identify: str = "a",
     ):
         """
         Set a single relay channel.
@@ -483,8 +489,10 @@ class SwitchBoxMPIKG(FlowchemDevice):
             elif 24 < channel <= 32 and port_identify == "d":
                 ch = channel - 24
             else:
-                logger.error(f"There is not channel {channel} in device {self.name} at port identify as "
-                             f"'Port-{port_identify}'!")
+                logger.error(
+                    f"There is not channel {channel} in device {self.name} at port identify as "
+                    f"'Port-{port_identify}'!"
+                )
                 return False
 
         status = await self.get_relay_channels()
@@ -495,7 +503,9 @@ class SwitchBoxMPIKG(FlowchemDevice):
             if await self.set_relay_port(values=values, port=port_identify.lower()):
                 await asyncio.sleep(self.low_power_after[port_identify.lower()])
                 values[ch - 1] = 1
-                return await self.set_relay_port(values=values, port=port_identify.lower())
+                return await self.set_relay_port(
+                    values=values, port=port_identify.lower()
+                )
             else:
                 return False
         else:
@@ -510,13 +520,17 @@ class SwitchBoxMPIKG(FlowchemDevice):
             lists of 8 integers (0, 1, 2) describing each channel state.
         """
         asw = await self.box_io.write_and_read_reply(
-            command=SwitchBoxBeferelayCommand(port=BefrelayPorts.ABCD, request=InfRequest.GET)
+            command=SwitchBoxBeferelayCommand(
+                port=BefrelayPorts.ABCD, request=InfRequest.GET
+            )
         )
         asw = asw.replace(" ", "")
         result = {}
         for ports in asw.split(","):
             bits_command = int_to_bit_list(int(ports.split(":")[1]))
-            result[ports.split(":")[0].lower()] = [a + b for a, b in zip(bits_command[:8], bits_command[8:])][::-1]
+            result[ports.split(":")[0].lower()] = [
+                a + b for a, b in zip(bits_command[:8], bits_command[8:])
+            ][::-1]
         return result
 
     """ ADC/DAC Commands """
@@ -531,7 +545,8 @@ class SwitchBoxMPIKG(FlowchemDevice):
         """
         asw = await self.box_io.write_and_read_reply(
             command=SwitchBoxGeneralCommand(
-                channel="x", request=InfRequest.GET, variable=VariableType.ADC)
+                channel="x", request=InfRequest.GET, variable=VariableType.ADC
+            )
         )
         asw = asw.replace(" ", "")
         result = {}
@@ -553,11 +568,11 @@ class SwitchBoxMPIKG(FlowchemDevice):
             float | int: DAC output in volts (if volts=True) or raw bits (if volts=False).
         """
         asw = await self.box_io.write_and_read_reply(
-            command=SwitchBoxGeneralCommand(channel=channel,
-                                            request=InfRequest.GET,
-                                            variable=VariableType.DAC)
+            command=SwitchBoxGeneralCommand(
+                channel=channel, request=InfRequest.GET, variable=VariableType.DAC
+            )
         )
-        bit = int(asw.split(':')[-1])
+        bit = int(asw.split(":")[-1])
         if volts:
             return bit / DAC_BITS * DAC_VOLTS
 
@@ -578,7 +593,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
             - The voltage is converted to volts and must be strictly between 0 V and 5 V.
             - If the voltage is out of range, an error is logged.
         """
-        volts = value.to('V').magnitude
+        volts = value.to("V").magnitude
         if not 0 < volts < 5:
             logger.error("The value set in the DAC should be between 0 and 5 V!")
             return False
@@ -587,7 +602,7 @@ class SwitchBoxMPIKG(FlowchemDevice):
                 channel=channel,
                 request=InfRequest.SET,
                 variable=VariableType.DAC,
-                value=int(volts * DAC_BITS / DAC_VOLTS)
+                value=int(volts * DAC_BITS / DAC_VOLTS),
             )
         )
         return status.startswith("OK")

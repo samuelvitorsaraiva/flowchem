@@ -1,4 +1,5 @@
 """Vacuubrand CVC3000 control."""
+
 import asyncio
 
 import aioserial
