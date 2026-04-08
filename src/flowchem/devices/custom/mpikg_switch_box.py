@@ -110,11 +110,13 @@ from loguru import logger
 from enum import Enum
 import aioserial
 import asyncio
+import sys
 
-try:
-    from enum import StrEnum
-except ImportError:
-    class StrEnum(str, Enum):
+if sys.version_info >= (3, 11):
+    from enum import StrEnum as _StrEnum
+else:
+
+    class _StrEnum(str, Enum):
         pass
 
 
@@ -149,12 +151,12 @@ class InvalidConfiguration(SwitchBoxException):
     pass
 
 
-class InfRequest(StrEnum):
+class InfRequest(_StrEnum):
     GET = "get"
     SET = "set"
 
 
-class VariableType(StrEnum):
+class VariableType(_StrEnum):
 
     VERSION = "ver"
 
@@ -163,7 +165,7 @@ class VariableType(StrEnum):
     DAC = "dac"  # (0-4095)(0-10V)
 
 
-class BefrelayPorts(StrEnum):
+class BefrelayPorts(_StrEnum):
     A = "a"
     B = "b"
     C = "c"

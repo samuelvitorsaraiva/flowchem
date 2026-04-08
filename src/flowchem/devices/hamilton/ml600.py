@@ -21,12 +21,6 @@ from flowchem.devices.hamilton.ml600_valve import ML600LeftValve, ML600RightValv
 from flowchem.utils.exceptions import InvalidConfigurationError, DeviceError
 from flowchem.utils.people import dario, jakob, wei_hsin, miguel
 
-try:
-    from enum import StrEnum
-except ImportError:
-    class StrEnum(str, Enum):
-        pass
-
 
 class ML600Commands(Enum):
     """Just a collection of commands. Grouped here to ease future, unlikely, changes."""
@@ -289,7 +283,7 @@ class HamiltonPumpIO:
             return self._parse_response(response)
 
 
-class ValveType(StrEnum):
+class ValveType(Enum):
     """Enum for supported valve types in ML600."""
 
     LEFT = "ML600LeftValve"
