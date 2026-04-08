@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from loguru import logger
 import pint
@@ -164,7 +164,7 @@ class ML600Pump(SyringePump):
         if await self.is_pumping():
             await self.stop()
         if not rate:
-            rate = self.hw_device.config["default_withdraw_rate"]
+            rate = cast(str, self.hw_device.config["default_withdraw_rate"])
             logger.warning(f"the flow rate is not provided. set to the default {rate}")
         if volume is None:
             target_vol = self.hw_device.syringe_volume
