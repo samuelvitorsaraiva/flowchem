@@ -91,7 +91,7 @@ class ViciValcoValveIO:
         """Write command to valve and read reply."""
         # Make sure input buffer is empty
         self._serial.reset_input_buffer()
-        logger.debug(f"Command {bytes(command)} sent!")
+        logger.debug(f"Command {bytes(command)!r} sent!")
         # Send command
         await self._serial.write_async(bytes(command))
 

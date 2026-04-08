@@ -128,7 +128,7 @@ class AutosamplerGantry3D(gantry3D):
         await super().set_z_position(position=position)
         if await self.is_needle_running():
             logger.warning("Needle already moving!")
-        success = await self.hw_device._move_needle_vertical(move_to=position)
+        success = await self.hw_device._move_needle_vertical(move_to=str(position))
         if success:
             logger.info(f"Needle moved successfully to {position} direction.")
             return True

@@ -442,21 +442,27 @@ class KnauerAutosampler(FlowchemDevice):
             )
 
     async def _parse_query_reply(self, reply) -> int:
+        stx_end = ReplyStructure.STX_END.value  # type: ignore[name-defined]
+        etx_start = ReplyStructure.ETX_START.value  # type: ignore[name-defined]
+        id_end = ReplyStructure.ID_END.value  # type: ignore[name-defined]
+        ai_end = ReplyStructure.AI_END.value  # type: ignore[name-defined]
+        pfc_end = ReplyStructure.PFC_END.value  # type: ignore[name-defined]
+        value_end = ReplyStructure.VALUE_END.value  # type: ignore[name-defined]
         reply_start_char, reply_stripped, reply_end_char = (
-            reply[: ReplyStructure.STX_END.value],  # type: ignore
-            reply[ReplyStructure.STX_END.value : ReplyStructure.ETX_START.value],  # type: ignore
-            reply[ReplyStructure.ETX_START.value :],
-        )  # type: ignore
+            reply[:stx_end],
+            reply[stx_end:etx_start],
+            reply[etx_start:],
+        )
         if reply_start_char != CommunicationFlags.MESSAGE_START.value or reply_end_char != CommunicationFlags.MESSAGE_END.value:  # type: ignore
             raise CommunicationError
 
         # basically, if the device gives an extended reply, length will be 14. This only matters for get commands
         if len(reply_stripped) == 14:
             # decompose further
-            as_id = reply[ReplyStructure.STX_END.value : ReplyStructure.ID_END.value]  # type: ignore
-            as_ai = reply[ReplyStructure.ID_END.value : ReplyStructure.AI_END.value]  # type: ignore
-            as_pfc = reply[ReplyStructure.AI_END.value : ReplyStructure.PFC_END.value]  # type: ignore
-            as_val = reply[ReplyStructure.PFC_END.value : ReplyStructure.VALUE_END.value]  # type: ignore
+            as_id = reply[stx_end:id_end]
+            as_ai = reply[id_end:ai_end]
+            as_pfc = reply[ai_end:pfc_end]
+            as_val = reply[pfc_end:value_end]
             # check if reply from requested device
             if int(as_id.decode()) != self.autosampler_id:
                 logger.error(f"AS_AI reply {as_ai} and AS_PFC reply {as_pfc}!")

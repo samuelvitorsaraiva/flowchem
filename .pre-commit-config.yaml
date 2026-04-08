@@ -17,9 +17,29 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    # Ruff version.
-    rev: 'v0.15.9'
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.9
     hooks:
     -   id: ruff
-        args: [--fix]
+        args: [.]
+        always_run: true
+        pass_filenames: false
+        types_or: [python, pyi]
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.0
+    hooks:
+    -   id: mypy
+        additional_dependencies:
+        - types-lxml
+        - types-PyYAML
+        - types-requests
+        args:
+        - --check-untyped-defs
+        - --python-version
+        - "3.11"
+        - --ignore-missing-imports
+        - ./src
+        always_run: true
+        pass_filenames: false
+        types_or: [python, pyi]

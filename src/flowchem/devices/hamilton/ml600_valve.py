@@ -31,7 +31,9 @@ class ML600LeftValve(FourPortFivePositionValve):
     # 315
     # 360
 
-    def _change_connections(self, raw_position: str, reverse: bool = False) -> str:
+    def _change_connections(
+        self, raw_position: int | str, reverse: bool = False
+    ) -> str:
         if not reverse:
             translated = int(raw_position) * 45
         else:
@@ -65,7 +67,9 @@ class ML600RightValve(ThreePortFourPositionValve):
         super().__init__(name, hw_device)
         self.identifier = identifier
 
-    def _change_connections(self, raw_position: str, reverse: bool = False) -> str:
+    def _change_connections(
+        self, raw_position: int | str, reverse: bool = False
+    ) -> str:
 
         if not reverse:
             translated = (int(raw_position) + 2) * 90

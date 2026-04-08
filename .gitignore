@@ -134,3 +134,7 @@ dmypy.json
 # Pycharm
 .idea
 .vscode/
+
+# pre-commit
+.pre-commit-cache/
+.pre-commit-cache-*

@@ -605,12 +605,11 @@ if __name__ == "__main__":
     # asyncio.run(main())
     from flowchem import ureg
 
-    conf = {
-        "port": "COM17",
-        "address": 20,
-        "name": "chiller",
-        "peltier_defaults": "tube_reactor",
-    }
-    chiller = PeltierCooler.from_config(**conf)
+    chiller = PeltierCooler.from_config(
+        port="COM17",
+        address=20,
+        name="chiller",
+        peltier_defaults="tube_reactor",
+    )
     asyncio.run(chiller.initialize())
     asyncio.run(chiller.set_temperature(ureg.Quantity("0 °C")))

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 import string
 import warnings
 from dataclasses import dataclass
@@ -585,21 +586,25 @@ class ML600(FlowchemDevice):
         )
         return True
 
-    async def get_pump_status(self, pump: str = "") -> bool | dict[str, bool]:
+    async def get_pump_status(self, pump: str = "") -> bool:
         """True means pump is busy. False means pump is idle."""
         checking_mapping = {"B": 1, "C": 3}
         pump = "B" if not pump else pump
         status = await self.system_status(checking_mapping[pump])
         logger.info(f"pump {pump} is busy: {status}")
-        return status  # type: ignore
+        if isinstance(status, bool):
+            return status
+        raise DeviceError(f"Unexpected pump status payload for {pump}: {status}")
 
-    async def get_valve_status(self, valve: str = "") -> bool | dict[str, bool]:
+    async def get_valve_status(self, valve: str = "") -> bool:
         """True means valve is busy. False means valve is idle."""
         checking_mapping = {"B": 0, "C": 2}
         valve = "B" if not valve else valve
         status = await self.system_status(checking_mapping[valve])
         logger.info(f"valve {valve} is busy: {status}")
-        return status
+        if isinstance(status, bool):
+            return status
+        raise DeviceError(f"Unexpected valve status payload for {valve}: {status}")
 
     async def system_status(self, component: int = -1) -> bool | dict[str, bool]:
         """Return status of a specific component or all components.
@@ -806,7 +811,7 @@ class ML600(FlowchemDevice):
         target_volume: pint.Quantity,
         rate_left: pint.Quantity,
         rate_right: pint.Quantity,
-        valve_angles: dict[str, str | int],
+        valve_angles: Mapping[str, str | int],
     ):
         """Executes synchronized filling of both syringes.
 
@@ -824,11 +829,15 @@ class ML600(FlowchemDevice):
             7: {"angle": 315, "position": "[[null,0],[null,null]]"},
         }
 
-        def get_angle_from_position(position_value: str) -> str | None:
+        def get_angle_from_position(position_value: str | int) -> str:
+            if isinstance(position_value, int):
+                return str(position_value)
+            if position_value.isdigit():
+                return position_value
             for data in ML600LeftValvePositionMapping.values():
                 if data["position"] == position_value:
                     return str(data["angle"])
-            return None
+            raise DeviceError(f"Unsupported valve angle mapping: {position_value}")
 
         # Use an explicit check instead of assert (stripped by -O flag).
         if not self.dual_syringe:

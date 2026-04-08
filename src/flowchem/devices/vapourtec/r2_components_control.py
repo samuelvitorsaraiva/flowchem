@@ -157,7 +157,12 @@ class R2InjectionValve(SixPortTwoPositionValve):
     async def get_position(self) -> list[list]:
         """Get current valve position."""
         position = await self.hw_device.get_valve_position(self.valve_code)
-        return self._positions[int(self._change_connections(position, reverse=True))]
+        return [
+            list(connection)
+            for connection in self._positions[
+                int(self._change_connections(position, reverse=True))
+            ]
+        ]
 
     async def set_position(
         self,
@@ -223,7 +228,12 @@ class R2TwoPortValve(TwoPortDistributionValve):  # total 3 positions (A, B, Coll
     async def get_position(self) -> list[list]:
         """Get current valve position."""
         position = await self.hw_device.get_valve_position(self.valve_code)
-        return self._positions[int(self._change_connections(position, reverse=True))]
+        return [
+            list(connection)
+            for connection in self._positions[
+                int(self._change_connections(position, reverse=True))
+            ]
+        ]
 
     async def set_position(
         self,
@@ -303,7 +313,7 @@ class R2PumpPressureSensor(PressureSensor):
         super().__init__(name, hw_device)
         self.pump_code = pump_code
 
-    async def read_pressure(self, units: str = "mbar") -> int | float | None:  # mbar
+    async def read_pressure(self, units: str = "mbar") -> float:  # mbar
         """Get current pump pressure in mbar."""
         pressure = await self.hw_device.get_current_pressure(self.pump_code)
         return pressure.m_as(units)
@@ -316,7 +326,7 @@ class R2GeneralPressureSensor(PressureSensor):
         """Create a ValveControl object."""
         super().__init__(name, hw_device)
 
-    async def read_pressure(self, units: str = "mbar") -> int:
+    async def read_pressure(self, units: str = "mbar") -> float:
         """Get system pressure."""
         pressure = await self.hw_device.get_current_pressure()
         return pressure.m_as(units)

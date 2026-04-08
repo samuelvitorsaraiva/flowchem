@@ -2,16 +2,29 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
 import json
-from typing import List, Optional
+from typing import Any, List, Optional, Protocol, cast
+
+from pydantic import BaseModel
 
 from flowchem.components.flowchem_component import FlowchemComponent
 from flowchem.devices.flowchem_device import FlowchemDevice
 from flowchem.utils.exceptions import InvalidConfigurationError, DeviceError
 
+Port = int | None
+PortConnection = tuple[Port, ...]
+ValveConnections = tuple[PortConnection, ...]
 
-def return_tuple_from_input(str_or_tuple):
+
+class RawPositioner(Protocol):
+    async def get_raw_position(self, *args: Any, **kwargs: Any) -> str | int: ...
+
+    async def set_raw_position(self, *args: Any, **kwargs: Any) -> object: ...
+
+
+def return_tuple_from_input(
+    str_or_tuple: str | ValveConnections | None,
+) -> ValveConnections | None:
     # in case no input is given, required, simply return None, will be dealt with by consumer
     if not str_or_tuple:
         return None
@@ -28,7 +41,7 @@ def return_tuple_from_input(str_or_tuple):
         raise DeviceError("Please provide input of type '[[1,2],[3,4]]'")
 
 
-def return_bool_from_input(str_or_bool):
+def return_bool_from_input(str_or_bool: str | bool | None) -> bool | None:
     if isinstance(str_or_bool, bool):
         return str_or_bool
     elif isinstance(str_or_bool, str):
@@ -42,6 +55,7 @@ def return_bool_from_input(str_or_bool):
             raise DeviceError(
                 "Please provide input of type bool, '' or 'True' or 'False'"
             )
+    return None
 
 
 class ValveInfo(BaseModel):
@@ -51,13 +65,13 @@ class ValveInfo(BaseModel):
                 position
     """
 
-    ports: list[tuple]
-    positions: dict[int, tuple[tuple[None | int, ...], ...]]
+    ports: list[PortConnection]
+    positions: dict[int, ValveConnections]
 
 
 def all_tuples_in_nested_tuple(
-    tuple_in: tuple[tuple[int, int], ...],
-    tuple_contains: tuple[tuple[int, int, ...], ...],
+    tuple_in: ValveConnections,
+    tuple_contains: ValveConnections,
 ) -> bool:
     """Check if all requested tuples are in a tuple of tuples"""
     all_contained = []
@@ -73,8 +87,8 @@ def all_tuples_in_nested_tuple(
 
 
 def no_tuple_in_nested_tuple(
-    tuple_in: tuple[tuple[int, int], ...],
-    tuple_contains: tuple[tuple[int, int, ...], ...],
+    tuple_in: ValveConnections,
+    tuple_contains: ValveConnections,
 ) -> bool:
     """Check if none of requested tuples are in a tuple of tuples"""
     contains_tuple = False
@@ -105,8 +119,8 @@ class Valve(FlowchemComponent):
         self,
         name: str,
         hw_device: "FlowchemDevice",
-        stator_ports: [(), ()],  # type: ignore
-        rotor_ports: [(), ()],  # type: ignore
+        stator_ports: list[PortConnection],
+        rotor_ports: list[PortConnection],
     ) -> None:
         """Create a valve object.
 
@@ -153,7 +167,7 @@ class Valve(FlowchemComponent):
         # Open/closed valves, need not be treated here but could be simulated by a [1,2,None] and rotor [3,3,None]
         self._rotor_ports = rotor_ports
         self._stator_ports = stator_ports
-        self._positions = self._create_connections(
+        self._positions: dict[int, ValveConnections] = self._create_connections(
             self._stator_ports, self._rotor_ports
         )
 
@@ -175,7 +189,7 @@ class Valve(FlowchemComponent):
         rotor_ports = list(rotor_ports)
         stator_ports = list(stator_ports)
 
-        connections = {}
+        connections: dict[int, ValveConnections] = {}
         if len(rotor_ports) != len(stator_ports):
             raise InvalidConfigurationError
         if len(rotor_ports) == 1:
@@ -187,7 +201,7 @@ class Valve(FlowchemComponent):
         # it is rather simple: we just move the rotor by one and thereby create a dictionary
         for _ in range(len(rotor_ports[0])):
             rotor_curr = rotor_ports[0][-_:] + rotor_ports[0][:-_]
-            _connections_per_position = {}
+            _connections_per_position: dict[int, PortConnection] = {}
             for rotor_position, stator_position in zip(
                 rotor_curr + rotor_ports[1], stator_ports[0] + stator_ports[1]
             ):
@@ -236,8 +250,8 @@ class Valve(FlowchemComponent):
 
     def _connect_positions(
         self,
-        positions_to_connect: tuple[tuple],
-        positions_not_to_connect: tuple[tuple] = None,
+        positions_to_connect: ValveConnections,
+        positions_not_to_connect: ValveConnections | None = None,
         arbitrary_switching: bool = True,
     ) -> int:
         """
@@ -275,13 +289,19 @@ class Valve(FlowchemComponent):
 
     async def get_position(self) -> List[List[Optional[int]]]:
         """Get current valve position."""
+        raw_position_device = cast(RawPositioner, self.hw_device)
         if not hasattr(self, "identifier"):
-            pos = await self.hw_device.get_raw_position()  # type: ignore
+            pos = await raw_position_device.get_raw_position()
         else:
-            pos = await self.hw_device.get_raw_position(self.identifier)  # type: ignore
+            pos = await raw_position_device.get_raw_position(self.identifier)
         if isinstance(pos, str) and pos.isnumeric():
             pos = int(pos)
-        return self._positions[int(self._change_connections(pos, reverse=True))]
+        return [
+            list(connection)
+            for connection in self._positions[
+                int(self._change_connections(pos, reverse=True))
+            ]
+        ]
 
     async def set_position(
         self,
@@ -290,20 +310,27 @@ class Valve(FlowchemComponent):
         ambiguous_switching: str | bool = False,
     ) -> bool:
         """Move valve to position, which connects named ports"""
-        connect = return_tuple_from_input(connect)
-        disconnect = return_tuple_from_input(disconnect)
-        ambiguous_switching = return_bool_from_input(ambiguous_switching)
+        connect_ports = return_tuple_from_input(connect)
+        if connect_ports is None:
+            raise DeviceError("Please specify at least one connection to make.")
+        disconnect_ports = return_tuple_from_input(disconnect)
+        allow_ambiguous = return_bool_from_input(ambiguous_switching)
         target_pos = self._connect_positions(
-            positions_to_connect=connect,
-            positions_not_to_connect=disconnect,
-            arbitrary_switching=ambiguous_switching,
+            positions_to_connect=connect_ports,
+            positions_not_to_connect=disconnect_ports,
+            arbitrary_switching=(
+                allow_ambiguous if allow_ambiguous is not None else False
+            ),
         )
         target_pos = self._change_connections(target_pos)
+        raw_position_device = cast(RawPositioner, self.hw_device)
         if not hasattr(self, "identifier"):
-            await self.hw_device.set_raw_position(target_pos)
+            await raw_position_device.set_raw_position(target_pos)
             return True
         else:
-            await self.hw_device.set_raw_position(target_pos, target_component=self.identifier)  # type: ignore
+            await raw_position_device.set_raw_position(
+                target_pos, target_component=self.identifier
+            )
         return True
 
     def connections(self) -> ValveInfo:
