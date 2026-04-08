@@ -219,9 +219,9 @@ class ViciValve(FlowchemDevice):
 
     async def timed_toggle(self, injection_time: str):
         """Switch valve to a position for a given time."""
-        delay = ureg.Quantity(injection_time).to("ms")
+        delay: str = str(ureg.Quantity(injection_time).to("ms"))
         set_delay = ViciCommand(
-            valve_id=self.address, command="DT", value=delay.magnitude, reply_lines=0
+            valve_id=self.address, command="DT", value=delay, reply_lines=0
         )
         await self.valve_io.write_and_read_reply(set_delay)
 
