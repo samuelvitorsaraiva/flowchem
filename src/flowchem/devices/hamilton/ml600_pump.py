@@ -191,9 +191,9 @@ class ML600Pump(SyringePump):
         return await self.hw_device.get_pump_status(self.pump_code)
 
     async def set_to_volume(self, volume: str, rate: str = "1 ml/min") -> bool:
-        volume = ureg.Quantity(volume)
-        rate = ureg.Quantity(rate)
-        await self.hw_device.set_to_volume(volume, rate, self.pump_code)
+        target_volume: pint.Quantity = ureg.Quantity(volume)
+        target_rate: pint.Quantity = ureg.Quantity(rate)
+        await self.hw_device.set_to_volume(target_volume, target_rate, self.pump_code)
         return await self.hw_device.get_pump_status(self.pump_code)
 
     async def get_current_volume(self) -> float:
