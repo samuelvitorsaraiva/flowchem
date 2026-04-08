@@ -36,10 +36,16 @@ class FastAPIServer:
         logger.debug("HTTP ASGI server app created")
 
     def _add_root_redirect(self) -> None:
-        @self.app.route("/")
-        def home_redirect_to_docs(request):
+        def home_redirect_to_docs():
             """Redirect root to `/docs` to enable interaction w/ API."""
             return RedirectResponse(url="/docs")
+
+        self.app.add_api_route(
+            "/",
+            home_redirect_to_docs,
+            methods=["GET"],
+            include_in_schema=False,
+        )
 
     def _add_configuration_retrieve(self) -> None:
         @self.app.get(
