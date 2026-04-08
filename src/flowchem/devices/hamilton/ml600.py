@@ -7,7 +7,7 @@ from collections.abc import Mapping
 import string
 import warnings
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import Enum
 
 import aioserial
 import pint
@@ -20,6 +20,12 @@ from flowchem.devices.hamilton.ml600_pump import ML600Pump
 from flowchem.devices.hamilton.ml600_valve import ML600LeftValve, ML600RightValve
 from flowchem.utils.exceptions import InvalidConfigurationError, DeviceError
 from flowchem.utils.people import dario, jakob, wei_hsin, miguel
+
+try:
+    from enum import StrEnum
+except ImportError:
+    class StrEnum(str, Enum):
+        pass
 
 
 class ML600Commands(Enum):

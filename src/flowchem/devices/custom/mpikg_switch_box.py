@@ -107,9 +107,16 @@ from flowchem.utils.people import samuel_saraiva
 
 from dataclasses import dataclass, field
 from loguru import logger
-from enum import StrEnum
+from enum import Enum
 import aioserial
 import asyncio
+
+try:
+    from enum import StrEnum
+except ImportError:
+    class StrEnum(str, Enum):
+        pass
+
 
 BEFE_RELE_BITS = 16
 ADC_VOLTS = 5
