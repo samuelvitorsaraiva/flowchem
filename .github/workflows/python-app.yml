@@ -43,8 +43,9 @@ jobs:
         run: |
             mypy --check-untyped-defs --python-version 3.11 --ignore-missing-imports ./src
 
-      - name: Run ruff
-        run: ruff check .
+      - name: Run pre-commit hooks
+        if: matrix.python-version == '3.11' && matrix.operating-system == 'ubuntu-latest'
+        run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Run pytest
         run: python -m pytest --cov=flowchem --cov-fail-under=40
