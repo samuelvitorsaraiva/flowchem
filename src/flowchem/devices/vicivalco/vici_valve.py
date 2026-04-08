@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 import aioserial
 from loguru import logger
-import pint
 
 from flowchem import ureg
 from flowchem.components.device_info import DeviceInfo
