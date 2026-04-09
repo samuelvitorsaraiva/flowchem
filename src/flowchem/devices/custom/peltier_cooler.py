@@ -435,10 +435,10 @@ class PeltierCooler(FlowchemDevice):
         await self._set_max_temperature(self.peltier_defaults.T_MAX)
         await self._set_min_temperature(self.peltier_defaults.T_MIN)
         await self._set_current_limit_heating(
-            int(self.peltier_defaults.STATE_DEPENDANT_CURRENT_LIMITS[-1::, 2])
+            int(self.peltier_defaults.STATE_DEPENDANT_CURRENT_LIMITS[-1, 2])
         )
         await self._set_current_limit_cooling(
-            int(self.peltier_defaults.STATE_DEPENDANT_CURRENT_LIMITS[:1:, 1])
+            int(self.peltier_defaults.STATE_DEPENDANT_CURRENT_LIMITS[0, 1])
         )
         await self.disable_slope()
 

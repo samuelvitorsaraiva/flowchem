@@ -170,6 +170,10 @@ class SwitchBoxRelay(MultiChannelRelay):
         """
         return await self.set_channel(channel, value="0")
 
+    async def is_on(self, channel: str = "1") -> bool:  # type: ignore[override]
+        """Check whether a relay channel is currently active."""
+        return await super().is_on(channel)
+
     async def switch_multiple_channel(self, values: str) -> bool:
         """
         Set the relay states of all 8 channels on the current port simultaneously.
