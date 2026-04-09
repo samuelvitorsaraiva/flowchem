@@ -1,4 +1,5 @@
 """Tests for MansonPowerSupplySim."""
+
 import pytest
 from flowchem.sim.devices.manson.manson_sim import MansonPowerSupplySim
 
@@ -8,6 +9,7 @@ async def manson() -> MansonPowerSupplySim:
     device = MansonPowerSupplySim.from_config(port="SIM", name="test-manson")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def power_ctrl(manson):

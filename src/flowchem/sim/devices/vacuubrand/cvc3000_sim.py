@@ -1,4 +1,5 @@
 """Simulated Vacuubrand CVC3000 vacuum controller."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -21,6 +22,7 @@ class CVC3000Sim(CVC3000):
     def __init__(self, aio=None, name=""):
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         FlowchemDevice.__init__(self, name)
         self._serial = None
         self.device_info = DeviceInfo(
@@ -28,8 +30,8 @@ class CVC3000Sim(CVC3000):
             model="SimulatedCVC3000",
             serial_number="SIM-CVC",
         )
-        self._sim_pressure: float = 1013.0    # mbar (atmospheric)
-        self._sim_setpoint: float = 500.0     # mbar
+        self._sim_pressure: float = 1013.0  # mbar (atmospheric)
+        self._sim_setpoint: float = 500.0  # mbar
         self._sim_speed: int = 100
         self._sim_version: str = "CVC 3000 V3.10"
 

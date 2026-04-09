@@ -1,4 +1,5 @@
 """Simulated Harvard Apparatus Elite11 syringe pump."""
+
 from __future__ import annotations
 
 import asyncio
@@ -156,6 +157,8 @@ class Elite11Sim(Elite11):
     Subclasses Elite11 and injects SimulatedHarvardApparatusPumpIO.
     All Elite11 logic runs unmodified.
     """
+
+    sim_io: SimulatedHarvardApparatusPumpIO
 
     @classmethod
     def from_config(

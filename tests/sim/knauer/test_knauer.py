@@ -1,12 +1,13 @@
 """Tests for AzuraCompactSim and KnauerValveSim."""
+
 import pytest
 from flowchem.sim.devices.knauer.azura_compact_sim import AzuraCompactSim
 from flowchem.sim.devices.knauer.knauer_valve_sim import KnauerValveSim
 
-
 # ---------------------------------------------------------------------------
 # AzuraCompact
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def azura() -> AzuraCompactSim:
@@ -14,9 +15,11 @@ async def azura() -> AzuraCompactSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def azura_pump(azura):
     return azura.components[0]  # AzuraCompactPump
+
 
 @pytest.fixture
 async def azura_pressure(azura):
@@ -31,10 +34,12 @@ class TestAzuraCompactSim:
     async def test_default_head_type(self, azura):
         head = await azura.get_headtype()
         from flowchem.devices.knauer.azura_compact import AzuraPumpHeads
+
         assert head == AzuraPumpHeads.FLOWRATE_TEN_ML
 
     async def test_set_and_get_flow_rate(self, azura):
         from flowchem import ureg
+
         await azura.set_flow_rate(ureg.Quantity("0.5 ml/min"))
         rate = await azura.get_flow_rate()
         assert abs(rate - 0.5) < 0.01
@@ -67,20 +72,22 @@ class TestAzuraCompactSim:
         assert isinstance(errors, list)
 
     async def test_set_maximum_pressure(self, azura):
-        await azura.set_maximum_pressure("30 bar")   # no error expected
+        await azura.set_maximum_pressure("30 bar")  # no error expected
 
     async def test_remote_control(self, azura):
-        await azura.remote_control(True)   # no error expected
+        await azura.remote_control(True)  # no error expected
 
     async def test_sim_state_flow_updates(self, azura):
         from flowchem import ureg
+
         await azura.set_flow_rate(ureg.Quantity("2 ml/min"))
-        assert azura._sim_flow == 2000   # µL/min
+        assert azura._sim_flow == 2000  # µL/min
 
 
 # ---------------------------------------------------------------------------
 # KnauerValve
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def knauer_valve_6() -> KnauerValveSim:
@@ -88,11 +95,13 @@ async def knauer_valve_6() -> KnauerValveSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def knauer_valve_injection() -> KnauerValveSim:
     device = KnauerValveSim.from_config(name="test-valve-inj", valve_type="LI")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def valve_component(knauer_valve_6):
@@ -106,11 +115,13 @@ class TestKnauerValveSim:
 
     async def test_injection_valve_type(self, knauer_valve_injection):
         from flowchem.devices.knauer.knauer_valve import KnauerValveHeads
+
         vtype = knauer_valve_injection.device_info.additional_info["valve-type"]
         assert vtype == KnauerValveHeads.SIX_PORT_TWO_POSITION
 
     async def test_six_port_valve_type(self, knauer_valve_6):
         from flowchem.devices.knauer.knauer_valve import KnauerValveHeads
+
         vtype = knauer_valve_6.device_info.additional_info["valve-type"]
         assert vtype == KnauerValveHeads.SIX_PORT_SIX_POSITION
 
@@ -130,6 +141,7 @@ class TestKnauerValveSim:
 
     async def test_valve_component_connections(self, valve_component):
         from flowchem.components.valves.valve import ValveInfo
+
         info = valve_component.connections()
         assert isinstance(info, ValveInfo)
         assert len(info.positions) > 0

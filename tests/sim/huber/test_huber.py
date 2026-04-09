@@ -1,4 +1,5 @@
 """Tests for HuberChillerSim."""
+
 import pytest
 from flowchem.sim.devices.huber.huber_sim import HuberChillerSim
 
@@ -8,6 +9,7 @@ async def chiller() -> HuberChillerSim:
     device = HuberChillerSim.from_config(port="SIM", name="test-huber")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def temp_ctrl(chiller):
@@ -28,24 +30,28 @@ class TestHuberChillerSim:
 
     async def test_set_temperature_updates_state(self, chiller):
         from flowchem import ureg
+
         await chiller.set_temperature(ureg.Quantity("10 °C"))
         temp = await chiller.get_temperature()
         assert abs(temp - 10.0) < 0.1
 
     async def test_set_temperature_negative(self, chiller):
         from flowchem import ureg
+
         await chiller.set_temperature(ureg.Quantity("-20 °C"))
         temp = await chiller.get_temperature()
         assert abs(temp - (-20.0)) < 0.1
 
     async def test_temperature_setpoint_readable(self, chiller):
         from flowchem import ureg
+
         await chiller.set_temperature(ureg.Quantity("30 °C"))
         sp = await chiller.get_temperature_setpoint()
         assert abs(sp - 30.0) < 0.1
 
     async def test_target_reached_after_set(self, chiller):
         from flowchem import ureg
+
         await chiller.set_temperature(ureg.Quantity("25 °C"))
         reached = await chiller.target_reached()
         assert reached is True
@@ -66,6 +72,7 @@ class TestHuberChillerSim:
     async def test_component_set_temperature(self, temp_ctrl):
         result = await temp_ctrl.set_temperature("15 degC")
         from flowchem import ureg
+
         assert result == ureg.Quantity("15 degC")
 
     async def test_component_is_target_reached(self, temp_ctrl):
@@ -75,7 +82,7 @@ class TestHuberChillerSim:
 
     async def test_component_power_on_off(self, temp_ctrl):
         await temp_ctrl.power_on()
-        await temp_ctrl.power_off()   # no error expected
+        await temp_ctrl.power_off()  # no error expected
 
     async def test_custom_min_max_temp(self):
         device = HuberChillerSim.from_config(

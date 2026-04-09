@@ -1,19 +1,24 @@
 """Tests for SwitchBoxMPIKGSim and PeltierCoolerSim."""
+
 import pytest
-from flowchem.sim.devices.custom.switchbox_sim import SwitchBoxMPIKGSim, SimulatedSwitchBoxIO
+from flowchem.sim.devices.custom.switchbox_sim import (
+    SwitchBoxMPIKGSim,
+    SimulatedSwitchBoxIO,
+)
 from flowchem.sim.devices.custom.peltier_sim import PeltierCoolerSim, SimulatedPeltierIO
 from flowchem import ureg
-
 
 # ---------------------------------------------------------------------------
 # SwitchBox
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def switchbox() -> SwitchBoxMPIKGSim:
     device = SwitchBoxMPIKGSim.from_config(port="SIM", name="test-switchbox")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def relay_a(switchbox):
@@ -74,7 +79,9 @@ class TestSwitchBoxMPIKGSim:
         assert "SIM" in switchbox.device_info.version
 
     async def test_set_relay_port(self, switchbox):
-        result = await switchbox.set_relay_port(values=[2, 0, 0, 0, 0, 0, 0, 0], port="a")
+        result = await switchbox.set_relay_port(
+            values=[2, 0, 0, 0, 0, 0, 0, 0], port="a"
+        )
         assert result is True
 
     async def test_get_relay_channels(self, switchbox):
@@ -82,7 +89,9 @@ class TestSwitchBoxMPIKGSim:
         assert set(channels.keys()) == {"a", "b", "c", "d"}
 
     async def test_set_relay_single_channel(self, switchbox):
-        result = await switchbox.set_relay_single_channel(channel=1, value=2, port_identify="a")
+        result = await switchbox.set_relay_single_channel(
+            channel=1, value=2, port_identify="a"
+        )
         assert result is True
 
     async def test_get_dac(self, switchbox):
@@ -108,11 +117,13 @@ class TestSwitchBoxMPIKGSim:
 # PeltierCooler
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 async def peltier() -> PeltierCoolerSim:
     device = PeltierCoolerSim.from_config(port="SIM", address=0, name="test-peltier")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def temp_ctrl(peltier):
@@ -123,7 +134,8 @@ class TestSimulatedPeltierIO:
 
     async def test_get_temperature_initial(self):
         io = SimulatedPeltierIO()
-        from flowchem.devices.custom.peltier_cooler import PeltierCommands, PeltierCommandTemplate
+        from flowchem.devices.custom.peltier_cooler import PeltierCommands
+
         cmd = PeltierCommands.GET_TEMPERATURE.to_peltier(address=0)
         reply = await io.write_and_read_reply(cmd)
         assert float(reply) == 25.0
@@ -131,13 +143,17 @@ class TestSimulatedPeltierIO:
     async def test_set_temperature_updates_state(self):
         io = SimulatedPeltierIO()
         from flowchem.devices.custom.peltier_cooler import PeltierCommands
-        cmd = PeltierCommands.SET_TEMPERATURE.to_peltier(address=0, argument=1000)  # 10.00 °C
+
+        cmd = PeltierCommands.SET_TEMPERATURE.to_peltier(
+            address=0, argument=1000
+        )  # 10.00 °C
         await io.write_and_read_reply(cmd)
         assert abs(io._sim_temp_cur - 10.0) < 0.01
 
     async def test_switch_on_sets_enabled(self):
         io = SimulatedPeltierIO()
         from flowchem.devices.custom.peltier_cooler import PeltierCommands
+
         cmd = PeltierCommands.SWITCH_ON.to_peltier(address=0)
         reply = await io.write_and_read_reply(cmd)
         assert reply == "1"
@@ -146,6 +162,7 @@ class TestSimulatedPeltierIO:
     async def test_switch_off_clears_enabled(self):
         io = SimulatedPeltierIO()
         from flowchem.devices.custom.peltier_cooler import PeltierCommands
+
         io._sim_enabled = True
         cmd = PeltierCommands.SWITCH_OFF.to_peltier(address=0)
         reply = await io.write_and_read_reply(cmd)
@@ -155,7 +172,10 @@ class TestSimulatedPeltierIO:
     async def test_cooling_current_limit(self):
         io = SimulatedPeltierIO()
         from flowchem.devices.custom.peltier_cooler import PeltierCommands
-        cmd = PeltierCommands.COOLING_CURRENT_LIMIT.to_peltier(address=0, argument=200)  # 2.0 A
+
+        cmd = PeltierCommands.COOLING_CURRENT_LIMIT.to_peltier(
+            address=0, argument=200
+        )  # 2.0 A
         reply = await io.write_and_read_reply(cmd)
         assert abs(float(reply) - 2.0) < 0.01
         assert abs(io._sim_cool_limit - 2.0) < 0.01

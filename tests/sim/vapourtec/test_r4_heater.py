@@ -1,4 +1,5 @@
 """Tests for R4HeaterSim."""
+
 import pytest
 
 from flowchem.sim.devices.vapourtec.r4_sim import R4HeaterSim
@@ -12,9 +13,11 @@ async def r4() -> R4HeaterSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 def reactor1(r4):
     return next(c for c in r4.components if c.name == "reactor1")
+
 
 @pytest.fixture
 def reactor2(r4):
@@ -116,9 +119,7 @@ class TestR4HeaterSim:
         assert abs(float(r4._sim_temps[1]) - 80.0) < 0.1
 
     async def test_custom_temp_limits(self):
-        device = R4HeaterSim.from_config(
-            name="hot-r4", min_temp=0.0, max_temp=300.0
-        )
+        device = R4HeaterSim.from_config(name="hot-r4", min_temp=0.0, max_temp=300.0)
         await device.initialize()
         assert device._min_t == [0.0] * 4
         assert device._max_t == [300.0] * 4

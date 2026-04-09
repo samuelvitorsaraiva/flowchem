@@ -1,10 +1,10 @@
 """Simulated Huber chiller."""
+
 from __future__ import annotations
 
 from loguru import logger
 
 from flowchem.devices.huber.chiller import HuberChiller
-from flowchem.devices.huber.pb_command import PBCommand
 
 
 def _huber_reply(code_hex: str, value: int) -> str:
@@ -25,10 +25,13 @@ class HuberChillerSim(HuberChiller):
     _sim_t_max      : int     max temperature in protocol units
     """
 
-    def __init__(self, aio=None, name="", min_temp: float = -40.0, max_temp: float = 150.0):
+    def __init__(
+        self, aio=None, name="", min_temp: float = -40.0, max_temp: float = 150.0
+    ):
         # Skip HuberChiller.__init__ which opens a serial port.
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         FlowchemDevice.__init__(self, name)
         self._serial = None
         self._min_t = min_temp
@@ -39,7 +42,7 @@ class HuberChillerSim(HuberChiller):
             serial_number="SIM-HUBER",
         )
 
-        self._sim_temp_set: int = 2500      # 25.00 °C
+        self._sim_temp_set: int = 2500  # 25.00 °C
         self._sim_temp_cur: float = 25.0
         self._sim_serial: int = 0x12345678
         self._sim_t_min: int = int(min_temp * 100) & 0xFFFF
@@ -61,8 +64,8 @@ class HuberChillerSim(HuberChiller):
         if not cmd.startswith("{M"):
             return _huber_reply("00", 0)
 
-        code = cmd[2:4]   # hex code, e.g. "00", "01", "1B"
-        data = cmd[4:8]   # "****" (read) or a 4-hex-char value (write)
+        code = cmd[2:4]  # hex code, e.g. "00", "01", "1B"
+        data = cmd[4:8]  # "****" (read) or a 4-hex-char value (write)
 
         # Temperature setpoint GET / SET  → code 0x00 = "00"
         if code == "00":

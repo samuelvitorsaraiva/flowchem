@@ -1,4 +1,5 @@
 """Simulated DataApex Clarity chromatography software."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -23,7 +24,7 @@ class ClaritySim(Clarity):
         name="sim-clarity",
         executable="claritychrom.exe",
         instrument_number=1,
-        startup_time=0.0,     # no waiting in simulation
+        startup_time=0.0,  # no waiting in simulation
         startup_method="",
         cmd_timeout=3.0,
         user="admin",
@@ -33,6 +34,7 @@ class ClaritySim(Clarity):
         # Skip Clarity.__init__ which validates that the executable exists.
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         FlowchemDevice.__init__(self, name=name)
         self.device_info = DeviceInfo(
             manufacturer="DataApex",
@@ -59,10 +61,13 @@ class ClaritySim(Clarity):
 
     async def initialize(self):
         from flowchem.devices.dataapex.clarity_hplc_control import ClarityComponent
+
         logger.info("[SIM] Clarity skipping subprocess startup.")
         self.components.append(ClarityComponent(name="clarity", hw_device=self))
 
-    async def execute_command(self, command: str, without_instrument_num: bool = False) -> bool:
+    async def execute_command(
+        self, command: str, without_instrument_num: bool = False
+    ) -> bool:
         """Record command instead of spawning subprocess."""
         self._sim_commands.append(command)
         logger.debug(f"[SIM] Clarity command recorded: {command!r}")

@@ -1,7 +1,7 @@
 """Tests for MFCSim and EPCSim (Bronkhorst)."""
+
 import pytest
-from flowchem.sim.devices.bronkhorst.bronkhorst_sim import MFCSim, EPCSim
-from flowchem import ureg
+from flowchem.sim.devices.bronkhorst.bronkhorst_sim import EPCSim, MFCSim
 
 
 @pytest.fixture
@@ -10,15 +10,18 @@ async def mfc() -> MFCSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def epc() -> EPCSim:
     device = EPCSim.from_config(name="test-epc", max_pressure=10.0)
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def mfc_component(mfc):
     return mfc.components[0]
+
 
 @pytest.fixture
 async def epc_component(epc):

@@ -1,4 +1,5 @@
 """Simulated Knauer DAD (diode-array detector)."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -29,19 +30,20 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
 
     class _StubDADCommands:
         """Minimal stub so KnauerDAD.__init__ succeeds without the NDA package."""
-        LAMP        = "LAMP{lamp}:{state}"
-        SERIAL      = "SERIAL"
-        IDENTIFY    = "IDENTIFY"
-        INFO        = "INFO"
-        STATUS      = "STATUS"
-        LOCAL       = "LOCAL"
-        REMOTE      = "REMOTE"
-        SHUTTER     = "SHUTTER:{state}"
+
+        LAMP = "LAMP{lamp}:{state}"
+        SERIAL = "SERIAL"
+        IDENTIFY = "IDENTIFY"
+        INFO = "INFO"
+        STATUS = "STATUS"
+        LOCAL = "LOCAL"
+        REMOTE = "REMOTE"
+        SHUTTER = "SHUTTER:{state}"
         SIGNAL_TYPE = "SIGNAL_TYPE:{state}"
-        WAVELENGTH  = "WL{channel}:{wavelength}"
-        SIGNAL      = "SIG{channel}:{signal}"
+        WAVELENGTH = "WL{channel}:{wavelength}"
+        SIGNAL = "SIG{channel}:{signal}"
         INTEGRATION_TIME = "INTTIME:{time}"
-        BANDWIDTH   = "BW:{bandwidth}"
+        BANDWIDTH = "BW:{bandwidth}"
 
     def __init__(
         self,
@@ -55,14 +57,15 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
         # Bypass both KnauerEthernetDevice and KnauerDAD __init__ network/NDA logic.
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         FlowchemDevice.__init__(self, name or "sim-dad")
 
         self.eol = b"\n\r"
-        self._d2  = turn_on_d2
+        self._d2 = turn_on_d2
         self._hal = turn_on_halogen
-        self._state_d2  = False
+        self._state_d2 = False
         self._state_hal = False
-        self._control   = display_control
+        self._control = display_control
         self.cmd = self._StubDADCommands()
 
         self.device_info = DeviceInfo(
@@ -72,12 +75,12 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
         )
 
         # Simulated state
-        self._sim_wavelengths: dict[int, int]   = {1: 254, 2: 280, 3: 360, 4: 450}
-        self._sim_signals:     dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0}
-        self._sim_lamps:       dict[str, str]   = {"d2": "0", "hal": "0"}
-        self._sim_bandwidth:   int = 8
-        self._sim_integ_time:  int = 100
-        self._sim_serial:      str = "SIM-DAD-00001"
+        self._sim_wavelengths: dict[int, int] = {1: 254, 2: 280, 3: 360, 4: 450}
+        self._sim_signals: dict[int, float] = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0}
+        self._sim_lamps: dict[str, str] = {"d2": "0", "hal": "0"}
+        self._sim_bandwidth: int = 8
+        self._sim_integ_time: int = 100
+        self._sim_serial: str = "SIM-DAD-00001"
         logger.info(f"[SIM] KnauerDAD '{self.name}' initialized.")
 
     @classmethod
@@ -121,7 +124,7 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
         if msg == "INFO":
             return "1024,UV-VIS,1,2020,1,,1.0,1.0,,1.0"
         if msg == "STATUS":
-            d2  = self._sim_lamps["d2"]
+            d2 = self._sim_lamps["d2"]
             hal = self._sim_lamps["hal"]
             return f"0,{d2},{hal},0,0,0,0,0,0,0,0"
 
@@ -131,7 +134,7 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
 
         # WAVELENGTH  WL<ch>:value or WL<ch>:?
         if msg.startswith("WL"):
-            rest = msg[2:]   # "1:254" or "1:?"
+            rest = msg[2:]  # "1:254" or "1:?"
             ch_str, val_str = rest.split(":", 1)
             ch = int(ch_str)
             if val_str == "?":
@@ -178,7 +181,11 @@ class KnauerDADSim(SimulatedKnauerEthernetDevice, KnauerDAD):
     # ------------------------------------------------------------------
 
     async def initialize(self):
-        from flowchem.devices.knauer.dad_component import DADChannelControl, KnauerDADLampControl
+        from flowchem.devices.knauer.dad_component import (
+            DADChannelControl,
+            KnauerDADLampControl,
+        )
+
         logger.info("[SIM] KnauerDAD skipping TCP connection.")
 
         # Replicate KnauerDAD.initialize() component registration

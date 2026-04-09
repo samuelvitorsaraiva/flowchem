@@ -1,4 +1,5 @@
 """Simulated Phidget bubble sensor and 5 V power source."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -47,7 +48,10 @@ class PhidgetPowerSource5VSim(FlowchemDevice):
         )
 
     async def initialize(self):
-        from flowchem.devices.phidgets.bubble_sensor_component import PhidgetBubbleSensorPowerComponent
+        from flowchem.devices.phidgets.bubble_sensor_component import (
+            PhidgetBubbleSensorPowerComponent,
+        )
+
         self.components.append(PhidgetBubbleSensorPowerComponent("5V", self))
 
     # Same synchronous API as the real device
@@ -112,7 +116,10 @@ class PhidgetBubbleSensorSim(FlowchemDevice):
         )
 
     async def initialize(self):
-        from flowchem.devices.phidgets.bubble_sensor_component import PhidgetBubbleSensorComponent
+        from flowchem.devices.phidgets.bubble_sensor_component import (
+            PhidgetBubbleSensorComponent,
+        )
+
         self.components.append(PhidgetBubbleSensorComponent("bubble-sensor", self))
 
     # Same synchronous API as the real device

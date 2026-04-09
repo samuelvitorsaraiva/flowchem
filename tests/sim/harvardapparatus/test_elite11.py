@@ -1,4 +1,5 @@
 """Tests for Elite11Sim and SimulatedHarvardApparatusPumpIO."""
+
 import pytest
 from flowchem.sim.devices.harvardapparatus.elite11_sim import (
     Elite11Sim,
@@ -17,6 +18,7 @@ async def elite11() -> Elite11Sim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def pump(elite11):
     return elite11.components[0]
@@ -33,6 +35,7 @@ class TestSimulatedHarvardApparatusPumpIO:
     async def test_firmware_version(self):
         io = SimulatedHarvardApparatusPumpIO()
         from flowchem.devices.harvardapparatus._pumpio import Protocol11Command
+
         cmd = Protocol11Command(command="VER", pump_address=0, arguments="")
         reply = await io.write_and_read_reply(cmd)
         assert "ELITE" in reply[0]
@@ -40,6 +43,7 @@ class TestSimulatedHarvardApparatusPumpIO:
     async def test_set_diameter(self):
         io = SimulatedHarvardApparatusPumpIO()
         from flowchem.devices.harvardapparatus._pumpio import Protocol11Command
+
         cmd = Protocol11Command(command="diameter", pump_address=0, arguments="20.0 mm")
         await io.write_and_read_reply(cmd)
         assert abs(io._sim_diameter - 20.0) < 0.01
@@ -47,6 +51,7 @@ class TestSimulatedHarvardApparatusPumpIO:
     async def test_irun_sets_infusing_status(self):
         io = SimulatedHarvardApparatusPumpIO()
         from flowchem.devices.harvardapparatus._pumpio import Protocol11Command
+
         cmd = Protocol11Command(command="irun", pump_address=0, arguments="")
         await io.write_and_read_reply(cmd)
         assert io._sim_status == PumpStatus.INFUSING
@@ -54,6 +59,7 @@ class TestSimulatedHarvardApparatusPumpIO:
     async def test_stp_sets_idle_status(self):
         io = SimulatedHarvardApparatusPumpIO()
         from flowchem.devices.harvardapparatus._pumpio import Protocol11Command
+
         io._sim_status = PumpStatus.INFUSING
         cmd = Protocol11Command(command="stp", pump_address=0, arguments="")
         await io.write_and_read_reply(cmd)
@@ -70,7 +76,9 @@ class TestElite11Sim:
         assert len(elite11.components) == 1
 
     async def test_firmware_version_set(self, elite11):
-        assert "ELITE" in elite11.device_info.version or True  # version set in initialize
+        assert (
+            "ELITE" in elite11.device_info.version or True
+        )  # version set in initialize
 
     async def test_version_method(self, elite11):
         ver = await elite11.version()
@@ -110,6 +118,7 @@ class TestElite11Sim:
 
     async def test_set_syringe_diameter(self, elite11):
         from flowchem import ureg
+
         await elite11.set_syringe_diameter(ureg.Quantity("20 mm"))
         assert abs(elite11.pump_io._sim_diameter - 20.0) < 0.01
 

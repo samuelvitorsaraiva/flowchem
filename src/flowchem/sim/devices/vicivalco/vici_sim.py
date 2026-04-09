@@ -1,9 +1,14 @@
 """Simulated Vici Valco injection valve."""
+
 from __future__ import annotations
 
 from loguru import logger
 
-from flowchem.devices.vicivalco.vici_valve import ViciValve, ViciValcoValveIO, ViciCommand
+from flowchem.devices.vicivalco.vici_valve import (
+    ViciValve,
+    ViciValcoValveIO,
+    ViciCommand,
+)
 
 
 class SimulatedViciValcoValveIO(ViciValcoValveIO):
@@ -32,14 +37,16 @@ class SimulatedViciValcoValveIO(ViciValcoValveIO):
 
     async def write_and_read_reply(self, command: ViciCommand) -> str:
         cmd = command.command.strip().upper()
-        logger.debug(f"[SIM] ViciValve addr={command.valve_id} cmd={cmd!r} val={command.value!r}")
+        logger.debug(
+            f"[SIM] ViciValve addr={command.valve_id} cmd={cmd!r} val={command.value!r}"
+        )
 
         if cmd == "LRN":
-            return ""   # reply_lines=0
+            return ""  # reply_lines=0
 
         if cmd == "HM":
             self._sim_position = "A"
-            return ""   # reply_lines=0
+            return ""  # reply_lines=0
 
         if cmd == "CP":
             return f"Position is  = {self._sim_position}"
@@ -52,7 +59,7 @@ class SimulatedViciValcoValveIO(ViciValcoValveIO):
             return ""
 
         if cmd == "DT":
-            return ""   # set delay — no reply
+            return ""  # set delay — no reply
 
         if cmd == "TT":
             # Toggle position
@@ -69,6 +76,8 @@ class ViciValveSim(ViciValve):
 
     All ViciValve logic runs unmodified; only the IO layer is replaced.
     """
+
+    sim_io: SimulatedViciValcoValveIO
 
     @classmethod
     def from_config(

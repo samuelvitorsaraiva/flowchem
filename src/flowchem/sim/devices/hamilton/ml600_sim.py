@@ -27,6 +27,7 @@ All moves are instantaneous in simulation — ``REQUEST_DONE`` always returns
 ``wait_until_idle()`` return immediately, which is the correct behaviour for
 software-level tests (we are testing logic, not timing).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -46,7 +47,7 @@ from flowchem.utils.exceptions import InvalidConfigurationError
 # Helpers
 # ---------------------------------------------------------------------------
 
-ACK = chr(6)   # 0x06 — acknowledge
+ACK = chr(6)  # 0x06 — acknowledge
 NAK = chr(21)  # 0x15 — negative acknowledge
 
 # Reverse map: address letter → pump number (e.g. 'a' → 1)
@@ -62,19 +63,21 @@ def _ack(payload: str = "") -> str:
 # Per-pump state
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _PumpState:
     """Mutable state for one pump address in the daisy chain."""
 
-    syringe_position: int = 0       # steps, 0–48 000
-    valve_angle: int = 0            # degrees, 0–359
-    return_steps: int = 24          # default per hardware docs
+    syringe_position: int = 0  # steps, 0–48 000
+    valve_angle: int = 0  # degrees, 0–359
+    return_steps: int = 24  # default per hardware docs
     firmware_version: str = "NV01.02.3"
 
 
 # ---------------------------------------------------------------------------
 # Simulated IO layer
 # ---------------------------------------------------------------------------
+
 
 class SimulatedHamiltonPumpIO(HamiltonPumpIO):
     """
@@ -222,7 +225,9 @@ class SimulatedHamiltonPumpIO(HamiltonPumpIO):
             for com in command:
                 command_compiled += com._multiple_compile()
             full_compiled = com.multiple_compile(command_compiled)
-            logger.debug(f"[SIM] multiple_write_and_read_reply_async: {full_compiled!r}")
+            logger.debug(
+                f"[SIM] multiple_write_and_read_reply_async: {full_compiled!r}"
+            )
 
             # Apply each sub-command to the state; reply for the whole batch is a single ACK.
             pump_num = command[0].target_pump_num
@@ -265,11 +270,11 @@ class SimulatedHamiltonPumpIO(HamiltonPumpIO):
 
         # --- Execution-only commands (no command body, just suffix) ---
 
-        if body == "K":   # PAUSE
+        if body == "K":  # PAUSE
             return _ack()
-        if body == "$":   # RESUME
+        if body == "$":  # RESUME
             return _ack()
-        if body == "V":   # CLEAR_BUFFER
+        if body == "V":  # CLEAR_BUFFER
             return _ack()
 
         # --- Strip the execution suffix (R, K, $, V) from the end ---
@@ -388,6 +393,7 @@ class SimulatedHamiltonPumpIO(HamiltonPumpIO):
 # ---------------------------------------------------------------------------
 # ML600Sim — the public sim device
 # ---------------------------------------------------------------------------
+
 
 class ML600Sim(ML600):
     """

@@ -1,5 +1,8 @@
 """Simulated Magritek Spinsolve NMR spectrometer."""
+
 from __future__ import annotations
+
+from typing import Any, cast
 
 from loguru import logger
 
@@ -67,8 +70,9 @@ class SpinsolveSim(FlowchemDevice):
 
     async def initialize(self):
         from flowchem.devices.magritek.spinsolve_control import SpinsolveControl
+
         logger.info("[SIM] Spinsolve skipping TCP connection.")
-        self.components.append(SpinsolveControl("nmr-control", self))
+        self.components.append(SpinsolveControl("nmr-control", cast(Any, self)))
 
     # Public API used by SpinsolveControl
     async def get_solvent(self) -> str:

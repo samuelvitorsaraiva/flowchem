@@ -4,6 +4,7 @@ Integration tests for flowchem-sim server.
 Starts the sim server with test_config_sim.toml via a subprocess and checks
 that every simulated device is reachable via HTTP.
 """
+
 from __future__ import annotations
 
 import os
@@ -25,6 +26,7 @@ BASE = "http://127.0.0.1:8000"
 # ---------------------------------------------------------------------------
 # Fixture: start flowchem-sim server
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def sim_server():
@@ -97,18 +99,20 @@ def sim_server():
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def get_device(device_name: str) -> dict:
     """GET /{device_name}/ and return the parsed JSON body."""
     r = requests.get(f"{BASE}/{device_name}/", timeout=5)
-    assert r.status_code == OK, (
-        f"Expected 200 for /{device_name}/, got {r.status_code}: {r.text}"
-    )
+    assert (
+        r.status_code == OK
+    ), f"Expected 200 for /{device_name}/, got {r.status_code}: {r.text}"
     return r.json()
 
 
 # ---------------------------------------------------------------------------
 # Tests — one per device family
 # ---------------------------------------------------------------------------
+
 
 class TestSimServerDeviceRoutes:
     """Every device registered in test_config_sim.toml must respond at its root endpoint."""
@@ -193,9 +197,7 @@ class TestSimServerDeviceRoutes:
         assert info["manufacturer"] == "Huber"
 
     def test_huber_temperature_get(self, sim_server):
-        r = requests.get(
-            f"{BASE}/sim-huber/temperature-control/temperature", timeout=5
-        )
+        r = requests.get(f"{BASE}/sim-huber/temperature-control/temperature", timeout=5)
         assert r.status_code == OK
 
     def test_huber_temperature_set(self, sim_server):
@@ -227,9 +229,7 @@ class TestSimServerDeviceRoutes:
         assert info["manufacturer"] == "Vacuubrand"
 
     def test_cvc3000_pressure_get(self, sim_server):
-        r = requests.get(
-            f"{BASE}/sim-cvc3000/pressure-control/pressure", timeout=5
-        )
+        r = requests.get(f"{BASE}/sim-cvc3000/pressure-control/pressure", timeout=5)
         assert r.status_code == OK
 
     # --- Manson ---

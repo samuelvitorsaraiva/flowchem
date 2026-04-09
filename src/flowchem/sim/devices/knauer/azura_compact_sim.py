@@ -1,4 +1,5 @@
 """Simulated Knauer AzuraCompact HPLC pump."""
+
 from __future__ import annotations
 from loguru import logger
 from flowchem.devices.knauer.azura_compact import AzuraCompact
@@ -17,15 +18,26 @@ class AzuraCompactSim(SimulatedKnauerEthernetDevice, AzuraCompact):
     head_type        : int    10 or 50 (ml/min head)
     """
 
-    def __init__(self, ip_address="127.0.0.1", mac_address=None,
-                 max_pressure: str = "", min_pressure: str = "", **kwargs):
+    def __init__(
+        self,
+        ip_address="127.0.0.1",
+        mac_address=None,
+        max_pressure: str = "",
+        min_pressure: str = "",
+        **kwargs,
+    ):
         # Bypass KnauerEthernetDevice network init via our sim base.
-        super().__init__(ip_address=ip_address, mac_address=mac_address,
-                         max_pressure=max_pressure, min_pressure=min_pressure, **kwargs)
-        self._sim_flow: int = 0          # µL/min
-        self._sim_pressure: int = 10     # 0.1 MPa units  → 1 bar
+        super().__init__(
+            ip_address=ip_address,
+            mac_address=mac_address,
+            max_pressure=max_pressure,
+            min_pressure=min_pressure,
+            **kwargs,
+        )
+        self._sim_flow: int = 0  # µL/min
+        self._sim_pressure: int = 10  # 0.1 MPa units  → 1 bar
         self._sim_running: bool = False
-        self._sim_head: int = 10         # 10 ml/min head by default
+        self._sim_head: int = 10  # 10 ml/min head by default
 
     # Called by SimulatedKnauerEthernetDevice._send_and_receive
     def _handle_command(self, message: str) -> str:
@@ -68,9 +80,21 @@ class AzuraCompactSim(SimulatedKnauerEthernetDevice, AzuraCompact):
             if key == "FLOW":
                 self._sim_flow = int(value)
                 return "FLOW:OK"
-            if key in ("PMAX10", "PMAX50", "PMIN10", "PMIN50",
-                       "IMIN10", "IMIN50", "STARTLEVEL", "STARTMODE",
-                       "ADJ10", "ADJ50", "CORR10", "CORR50", "EXTCONTR"):
+            if key in (
+                "PMAX10",
+                "PMAX50",
+                "PMIN10",
+                "PMIN50",
+                "IMIN10",
+                "IMIN50",
+                "STARTLEVEL",
+                "STARTMODE",
+                "ADJ10",
+                "ADJ50",
+                "CORR10",
+                "CORR50",
+                "EXTCONTR",
+            ):
                 return f"{key}:OK"
             if key == "REMOTE":
                 return "REMOTE:OK"

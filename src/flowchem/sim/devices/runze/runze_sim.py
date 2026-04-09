@@ -1,7 +1,7 @@
 """Simulated Runze SV-06 multi-position valve."""
+
 from __future__ import annotations
 
-import asyncio
 from loguru import logger
 
 from flowchem.devices.runze.runze_valve import (
@@ -36,7 +36,7 @@ class SimulatedRunzeValveIO(RunzeValveIO):
         logger.debug(f"[SIM] RunzeValve ← {command.hex()!r}")
 
     async def _read_reply_async(self) -> str:
-        return ""   # Not used in sim path
+        return ""  # Not used in sim path
 
     async def write_and_read_reply_async(
         self, command: SV06Command, raise_errors: bool = True
@@ -56,8 +56,11 @@ class SimulatedRunzeValveIO(RunzeValveIO):
             else:
                 if raise_errors:
                     from flowchem.utils.exceptions import DeviceError
-                    raise DeviceError(f"Position {target} out of range for {self._sim_num_ports}-port valve")
-                return "02", "00"   # Parameter error
+
+                    raise DeviceError(
+                        f"Position {target} out of range for {self._sim_num_ports}-port valve"
+                    )
+                return "02", "00"  # Parameter error
 
         logger.debug(f"[SIM] RunzeValve unhandled fc={fc!r}")
         return "00", "00"
@@ -73,6 +76,8 @@ class RunzeValveSim(RunzeValve):
         type = "RunzeValve"          # replaced by flowchem-sim
         num_ports = 6                # optional, default 6
     """
+
+    sim_io: SimulatedRunzeValveIO
 
     @classmethod
     def from_config(cls, **config) -> "RunzeValveSim":

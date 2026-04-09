@@ -12,6 +12,7 @@ Usage
     flowchem-sim --debug experiment.toml
     flowchem-sim --host 127.0.0.1 experiment.toml
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -27,10 +28,10 @@ from flowchem.server.core import Flowchem
 from flowchem.devices.list_known_device_type import autodiscover_device_classes
 from flowchem.sim.registry import build_sim_device_mapper
 
-
 # ---------------------------------------------------------------------------
 # Patched instantiation helper
 # ---------------------------------------------------------------------------
+
 
 def _instantiate_with_sim_mapper(config: dict):
     """Like ``instantiate_device_from_config`` but uses the simulation mapper."""
@@ -38,6 +39,7 @@ def _instantiate_with_sim_mapper(config: dict):
 
     if "device" not in config:
         from flowchem.utils.exceptions import InvalidConfigurationError
+
         raise InvalidConfigurationError(
             "The configuration file must include a [device.*] section."
         )
@@ -55,11 +57,13 @@ def _instantiate_with_sim_mapper(config: dict):
 # Patched Flowchem.setup that injects the sim mapper
 # ---------------------------------------------------------------------------
 
+
 class SimFlowchem(Flowchem):
     """Flowchem subclass that uses simulated devices."""
 
     async def setup(self, config):  # type: ignore[override]
         from flowchem.server.configuration_parser import parse_config as _parse_config
+
         self.config = _parse_config(config)
         self.http.configuration_dict = dict(self.config)  # shallow copy is fine
         self.devices = _instantiate_with_sim_mapper(self.config)
@@ -79,15 +83,22 @@ class SimFlowchem(Flowchem):
 # CLI
 # ---------------------------------------------------------------------------
 
+
 @click.argument("device_config_file", type=click.Path(), required=True)
 @click.option(
-    "-l", "--log", "logfile",
-    type=click.Path(), default=None,
+    "-l",
+    "--log",
+    "logfile",
+    type=click.Path(),
+    default=None,
     help="Save logs to file.",
 )
 @click.option(
-    "-h", "--host", "host",
-    type=str, default="0.0.0.0",
+    "-h",
+    "--host",
+    "host",
+    type=str,
+    default="0.0.0.0",
     help="Server host. 0.0.0.0 binds to all addresses.",
 )
 @click.option("-d", "--debug", is_flag=True, help="Print debug info.")

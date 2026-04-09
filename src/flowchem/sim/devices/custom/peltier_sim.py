@@ -1,17 +1,14 @@
 """Simulated custom Peltier cooler."""
+
 from __future__ import annotations
 
 from loguru import logger
 
 from flowchem.devices.custom.peltier_cooler import (
+    PeltierCommand,
     PeltierCooler,
     PeltierIO,
-    PeltierCommand,
-    PeltierCommandTemplate,
-    PeltierDefaults,
-    PeltierCommands,
 )
-import asyncio
 
 
 class SimulatedPeltierIO(PeltierIO):
@@ -34,6 +31,7 @@ class SimulatedPeltierIO(PeltierIO):
     def __init__(self, address: int = 0):
         # Skip PeltierIO.__init__ which opens a serial port.
         from asyncio import Lock
+
         self.lock = Lock()
         self._serial = type("_FakeSerial", (), {"port": "SIM", "name": "SIM"})()
         self._address = address
@@ -58,7 +56,9 @@ class SimulatedPeltierIO(PeltierIO):
         """Dispatch the command and return a simulated response."""
         cmd_str = command.command_string.upper()
         arg = command.command_argument
-        logger.debug(f"[SIM] Peltier addr={command.target_peltier_address} cmd={cmd_str!r} arg={arg!r}")
+        logger.debug(
+            f"[SIM] Peltier addr={command.target_peltier_address} cmd={cmd_str!r} arg={arg!r}"
+        )
 
         # Temperature get/set
         if cmd_str == "GT1":
@@ -68,7 +68,7 @@ class SimulatedPeltierIO(PeltierIO):
         if cmd_str == "STV":
             val = float(arg) / 100
             self._sim_temp_set = val
-            self._sim_temp_cur = val   # instant settle in sim
+            self._sim_temp_cur = val  # instant settle in sim
             return str(val)
 
         # Slope
@@ -141,6 +141,8 @@ class PeltierCoolerSim(PeltierCooler):
 
     Injects SimulatedPeltierIO so all PeltierCooler logic runs unchanged.
     """
+
+    sim_io: SimulatedPeltierIO
 
     @classmethod
     def from_config(

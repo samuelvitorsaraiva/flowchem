@@ -1,4 +1,5 @@
 """Tests for CVC3000Sim."""
+
 import pytest
 from flowchem.sim.devices.vacuubrand.cvc3000_sim import CVC3000Sim
 from flowchem import ureg
@@ -9,6 +10,7 @@ async def cvc3000() -> CVC3000Sim:
     device = CVC3000Sim.from_config(port="SIM", name="test-cvc")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 async def pressure_ctrl(cvc3000):
@@ -37,6 +39,7 @@ class TestCVC3000Sim:
 
     async def test_status_returns_model(self, cvc3000):
         from flowchem.devices.vacuubrand.constants import ProcessStatus
+
         status = await cvc3000.status()
         assert isinstance(status, ProcessStatus)
 

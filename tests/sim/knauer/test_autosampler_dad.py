@@ -1,13 +1,14 @@
 """Tests for KnauerAutosamplerSim and KnauerDADSim."""
+
 import pytest
 
 from flowchem.sim.devices.knauer.autosampler_sim import KnauerAutosamplerSim
 from flowchem.sim.devices.knauer.dad_sim import KnauerDADSim
 
-
 # ---------------------------------------------------------------------------
 # KnauerAutosampler
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def autosampler() -> KnauerAutosamplerSim:
@@ -19,17 +20,21 @@ async def autosampler() -> KnauerAutosamplerSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 def gantry(autosampler):
     return next(c for c in autosampler.components if c.name == "gantry3D")
+
 
 @pytest.fixture
 def as_pump(autosampler):
     return next(c for c in autosampler.components if c.name == "pump")
 
+
 @pytest.fixture
 def syringe_valve(autosampler):
     return next(c for c in autosampler.components if c.name == "syringe_valve")
+
 
 @pytest.fixture
 def injection_valve(autosampler):
@@ -80,7 +85,9 @@ class TestKnauerAutosamplerSim:
         assert isinstance(result, str)
 
     async def test_set_raw_position_injection(self, autosampler):
-        await autosampler.set_raw_position(position="INJECT", target_component="injection_valve")
+        await autosampler.set_raw_position(
+            position="INJECT", target_component="injection_valve"
+        )
         assert autosampler._sim_injection_valve == "INJECT"
 
     async def test_move_needle_vertical(self, autosampler):
@@ -119,7 +126,7 @@ class TestKnauerAutosamplerSim:
 
     async def test_gantry_reset_errors(self, gantry):
         result = await gantry.reset_errors()
-        assert result is False   # no errors present
+        assert result is False  # no errors present
 
     async def test_gantry_set_z_position(self, gantry):
         result = await gantry.set_z_position("DOWN")
@@ -159,19 +166,23 @@ class TestKnauerAutosamplerSim:
 # KnauerDAD
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 async def dad() -> KnauerDADSim:
     device = KnauerDADSim.from_config(name="test-dad")
     await device.initialize()
     return device
 
+
 @pytest.fixture
 def lamp_d2(dad):
     return next(c for c in dad.components if c.name == "d2")
 
+
 @pytest.fixture
 def lamp_hal(dad):
     return next(c for c in dad.components if c.name == "hal")
+
 
 @pytest.fixture
 def channel1(dad):
@@ -245,7 +256,7 @@ class TestKnauerDADSim:
 
     async def test_lamp_component_power_on(self, lamp_d2):
         await lamp_d2.power_on()
-        assert dad._sim_lamps["d2"] == "1"   # verifiable via fixture below
+        assert dad._sim_lamps["d2"] == "1"  # verifiable via fixture below
 
     async def test_lamp_component_get(self, lamp_d2, dad):
         state = await lamp_d2.get_lamp()

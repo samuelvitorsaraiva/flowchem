@@ -1,4 +1,5 @@
 """Tests for PhidgetBubbleSensorSim and PhidgetPowerSource5VSim."""
+
 import pytest
 
 from flowchem.sim.devices.phidgets.bubble_sim import (
@@ -6,16 +7,17 @@ from flowchem.sim.devices.phidgets.bubble_sim import (
     PhidgetPowerSource5VSim,
 )
 
-
 # ---------------------------------------------------------------------------
 # PhidgetPowerSource5V
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def power5v() -> PhidgetPowerSource5VSim:
     device = PhidgetPowerSource5VSim.from_config(name="test-5v")
     await device.initialize()
     return device
+
 
 @pytest.fixture
 def power_component(power5v):
@@ -59,11 +61,13 @@ class TestPhidgetPowerSource5VSim:
 # PhidgetBubbleSensor
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 async def bubble() -> PhidgetBubbleSensorSim:
     device = PhidgetBubbleSensorSim.from_config(name="test-bubble", data_interval=100)
     await device.initialize()
     return device
+
 
 @pytest.fixture
 def bubble_component(bubble):
@@ -88,7 +92,7 @@ class TestPhidgetBubbleSensorSim:
     async def test_intensity_conversion(self, bubble):
         bubble._sim_voltage = 2.5
         intensity = bubble.read_intensity()
-        assert abs(intensity - 50.0) < 0.01   # 2.5 V * 20 = 50 %
+        assert abs(intensity - 50.0) < 0.01  # 2.5 V * 20 = 50 %
 
     async def test_voltage_to_intensity_zero(self, bubble):
         assert bubble._voltage_to_intensity(0.0) == 0.0
@@ -129,7 +133,7 @@ class TestPhidgetBubbleSensorSim:
     async def test_component_acquire_signal(self, bubble_component, bubble):
         bubble._sim_voltage = 1.0
         sig = await bubble_component.acquire_signal()
-        assert abs(sig - 20.0) < 0.01   # 1.0 V * 20 = 20 %
+        assert abs(sig - 20.0) < 0.01  # 1.0 V * 20 = 20 %
 
     async def test_manufacturer(self, bubble):
         assert bubble.device_info.manufacturer == "Phidget"

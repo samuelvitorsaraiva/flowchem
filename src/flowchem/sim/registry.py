@@ -17,6 +17,7 @@ Adding a new device
 3. Override ``from_config`` to skip serial/network/SDK init.
 4. Add an entry to ``_REGISTRY`` below.
 """
+
 from __future__ import annotations
 
 from importlib import import_module
@@ -29,96 +30,55 @@ from loguru import logger
 # ---------------------------------------------------------------------------
 _REGISTRY: dict[str, str] = {
     # Hamilton
-    "ML600":
-        "flowchem.sim.devices.hamilton.ml600_sim.ML600Sim",
-
+    "ML600": "flowchem.sim.devices.hamilton.ml600_sim.ML600Sim",
     # Knauer
-    "AzuraCompact":
-        "flowchem.sim.devices.knauer.azura_compact_sim.AzuraCompactSim",
-    "KnauerValve":
-        "flowchem.sim.devices.knauer.knauer_valve_sim.KnauerValveSim",
-    "KnauerAutosampler":
-        "flowchem.sim.devices.knauer.autosampler_sim.KnauerAutosamplerSim",
-    "KnauerDAD":
-        "flowchem.sim.devices.knauer.dad_sim.KnauerDADSim",
-
+    "AzuraCompact": "flowchem.sim.devices.knauer.azura_compact_sim.AzuraCompactSim",
+    "KnauerValve": "flowchem.sim.devices.knauer.knauer_valve_sim.KnauerValveSim",
+    "KnauerAutosampler": "flowchem.sim.devices.knauer.autosampler_sim.KnauerAutosamplerSim",
+    "KnauerDAD": "flowchem.sim.devices.knauer.dad_sim.KnauerDADSim",
     # Huber
-    "HuberChiller":
-        "flowchem.sim.devices.huber.huber_sim.HuberChillerSim",
-
+    "HuberChiller": "flowchem.sim.devices.huber.huber_sim.HuberChillerSim",
     # Harvard Apparatus
-    "Elite11":
-        "flowchem.sim.devices.harvardapparatus.elite11_sim.Elite11Sim",
-
+    "Elite11": "flowchem.sim.devices.harvardapparatus.elite11_sim.Elite11Sim",
     # Vacuubrand
-    "CVC3000":
-        "flowchem.sim.devices.vacuubrand.cvc3000_sim.CVC3000Sim",
-
+    "CVC3000": "flowchem.sim.devices.vacuubrand.cvc3000_sim.CVC3000Sim",
     # Manson
-    "MansonPowerSupply":
-        "flowchem.sim.devices.manson.manson_sim.MansonPowerSupplySim",
-
+    "MansonPowerSupply": "flowchem.sim.devices.manson.manson_sim.MansonPowerSupplySim",
     # Bronkhorst
-    "MFC":
-        "flowchem.sim.devices.bronkhorst.bronkhorst_sim.MFCSim",
-    "EPC":
-        "flowchem.sim.devices.bronkhorst.bronkhorst_sim.EPCSim",
-
+    "MFC": "flowchem.sim.devices.bronkhorst.bronkhorst_sim.MFCSim",
+    "EPC": "flowchem.sim.devices.bronkhorst.bronkhorst_sim.EPCSim",
     # Vapourtec
-    "R2":
-        "flowchem.sim.devices.vapourtec.r2_sim.R2Sim",
-    "R4Heater":
-        "flowchem.sim.devices.vapourtec.r4_sim.R4HeaterSim",
-
+    "R2": "flowchem.sim.devices.vapourtec.r2_sim.R2Sim",
+    "R4Heater": "flowchem.sim.devices.vapourtec.r4_sim.R4HeaterSim",
     # Runze
-    "RunzeValve":
-        "flowchem.sim.devices.runze.runze_sim.RunzeValveSim",
-
+    "RunzeValve": "flowchem.sim.devices.runze.runze_sim.RunzeValveSim",
     # Vici Valco
-    "ViciValve":
-        "flowchem.sim.devices.vicivalco.vici_sim.ViciValveSim",
-
+    "ViciValve": "flowchem.sim.devices.vicivalco.vici_sim.ViciValveSim",
     # Phidgets
-    "PhidgetPressureSensor":
-        "flowchem.sim.devices.phidgets.phidgets_sim.PhidgetPressureSensorSim",
-    "PhidgetBubbleSensor":
-        "flowchem.sim.devices.phidgets.bubble_sim.PhidgetBubbleSensorSim",
-    "PhidgetPowerSource5V":
-        "flowchem.sim.devices.phidgets.bubble_sim.PhidgetPowerSource5VSim",
-
+    "PhidgetPressureSensor": "flowchem.sim.devices.phidgets.phidgets_sim.PhidgetPressureSensorSim",
+    "PhidgetBubbleSensor": "flowchem.sim.devices.phidgets.bubble_sim.PhidgetBubbleSensorSim",
+    "PhidgetPowerSource5V": "flowchem.sim.devices.phidgets.bubble_sim.PhidgetPowerSource5VSim",
     # Mettler-Toledo
-    "IcIR":
-        "flowchem.sim.devices.mettlertoledo.icir_sim.IcIRSim",
-
+    "IcIR": "flowchem.sim.devices.mettlertoledo.icir_sim.IcIRSim",
     # Magritek
-    "Spinsolve":
-        "flowchem.sim.devices.magritek.spinsolve_sim.SpinsolveSim",
-
+    "Spinsolve": "flowchem.sim.devices.magritek.spinsolve_sim.SpinsolveSim",
     # Waters
-    "WatersMS":
-        "flowchem.sim.devices.waters.waters_sim.WatersMSSim",
-
+    "WatersMS": "flowchem.sim.devices.waters.waters_sim.WatersMSSim",
     # DataApex
-    "Clarity":
-        "flowchem.sim.devices.dataapex.clarity_sim.ClaritySim",
-
+    "Clarity": "flowchem.sim.devices.dataapex.clarity_sim.ClaritySim",
     # Custom MPIKG devices
-    "SwitchBoxMPIKG":
-        "flowchem.sim.devices.custom.switchbox_sim.SwitchBoxMPIKGSim",
-    "PeltierCooler":
-        "flowchem.sim.devices.custom.peltier_sim.PeltierCoolerSim",
-
+    "SwitchBoxMPIKG": "flowchem.sim.devices.custom.switchbox_sim.SwitchBoxMPIKGSim",
+    "PeltierCooler": "flowchem.sim.devices.custom.peltier_sim.PeltierCoolerSim",
     # Bio-Chem solenoid valves
-    "BioChemSolenoidValve":
-        "flowchem.sim.devices.biochem.solenoid_sim.BioChemSolenoidValveSim",
-    "BioChemSolenoid2WayValve":
-        "flowchem.sim.devices.biochem.solenoid_sim.BioChemSolenoid2WayValveSim",
+    "BioChemSolenoidValve": "flowchem.sim.devices.biochem.solenoid_sim.BioChemSolenoidValveSim",
+    "BioChemSolenoid2WayValve": "flowchem.sim.devices.biochem.solenoid_sim.BioChemSolenoid2WayValveSim",
 }
 
 
 # ---------------------------------------------------------------------------
 # Public helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_class(dotted_path: str) -> Any:
     """Import and return a class given its fully-qualified dotted path."""
@@ -151,8 +111,7 @@ def build_sim_device_mapper(real_mapper: dict[str, Any]) -> dict[str, Any]:
         if device_type in _REGISTRY:
             sim_cls = _load_class(_REGISTRY[device_type])
             logger.info(
-                f"[SIM] '{device_type}' ({real_cls.__name__}) "
-                f"→ {sim_cls.__name__}"
+                f"[SIM] '{device_type}' ({real_cls.__name__}) " f"→ {sim_cls.__name__}"
             )
             sim_mapper[device_type] = sim_cls
         else:

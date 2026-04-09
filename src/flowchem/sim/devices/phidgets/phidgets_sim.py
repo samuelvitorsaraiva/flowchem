@@ -1,4 +1,5 @@
 """Simulated Phidget pressure sensor."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -55,12 +56,18 @@ class PhidgetPressureSensorSim(FlowchemDevice):
         return cls(
             pressure_range=pressure_range,
             name=config.pop("name", "sim-phidget-pressure"),
-            **{k: v for k, v in config.items()
-               if k in ("vint_serial_number", "vint_channel", "phidget_is_remote")},
+            **{
+                k: v
+                for k, v in config.items()
+                if k in ("vint_serial_number", "vint_channel", "phidget_is_remote")
+            },
         )
 
     async def initialize(self):
-        from flowchem.devices.phidgets.pressure_sensor_component import PhidgetPressureSensorComponent
+        from flowchem.devices.phidgets.pressure_sensor_component import (
+            PhidgetPressureSensorComponent,
+        )
+
         self.components.append(PhidgetPressureSensorComponent("pressure-sensor", self))
 
     def is_attached(self) -> bool:

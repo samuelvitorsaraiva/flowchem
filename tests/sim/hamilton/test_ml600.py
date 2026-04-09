@@ -11,6 +11,7 @@ Fixtures
 ml600_single : ML600Sim configured as a single-syringe pump
 ml600_dual   : ML600Sim configured as a dual-syringe pump
 """
+
 from __future__ import annotations
 
 import pytest
@@ -18,10 +19,10 @@ import pytest
 from flowchem import ureg
 from flowchem.sim.devices.hamilton.ml600_sim import ML600Sim, SimulatedHamiltonPumpIO
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def ml600_single() -> ML600Sim:
@@ -58,6 +59,7 @@ async def valve(ml600_single):
 # ---------------------------------------------------------------------------
 # Group 1 — Initialization
 # ---------------------------------------------------------------------------
+
 
 class TestInitialization:
 
@@ -109,6 +111,7 @@ class TestInitialization:
 # ---------------------------------------------------------------------------
 # Group 2 — Pump logic
 # ---------------------------------------------------------------------------
+
 
 class TestPumpLogic:
 
@@ -207,6 +210,7 @@ class TestPumpLogic:
     async def test_validate_speed_clamps_low(self, ml600_single):
         """Speeds below 2 sec/stroke should be clamped to 2."""
         import warnings
+
         speed = ureg.Quantity("0.1 sec/stroke")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -216,6 +220,7 @@ class TestPumpLogic:
     async def test_validate_speed_clamps_high(self, ml600_single):
         """Speeds above 3692 sec/stroke should be clamped to 3692."""
         import warnings
+
         speed = ureg.Quantity("99999 sec/stroke")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -225,13 +230,17 @@ class TestPumpLogic:
     async def test_invalid_syringe_volume_raises(self):
         """An invalid syringe volume should raise InvalidConfigurationError."""
         from flowchem.utils.exceptions import InvalidConfigurationError
+
         with pytest.raises(InvalidConfigurationError):
-            ML600Sim.from_config(name="bad", syringe_volume="7 ml")  # 7 ml not in VALID_SYRINGE_VOLUME
+            ML600Sim.from_config(
+                name="bad", syringe_volume="7 ml"
+            )  # 7 ml not in VALID_SYRINGE_VOLUME
 
 
 # ---------------------------------------------------------------------------
 # Group 3 — Valve logic
 # ---------------------------------------------------------------------------
+
 
 class TestValveLogic:
 
@@ -288,6 +297,7 @@ class TestValveLogic:
     async def test_connections_returns_valve_info(self, valve):
         """connections() should return a ValveInfo with ports and positions."""
         from flowchem.components.valves.valve import ValveInfo
+
         info = valve.connections()
         assert isinstance(info, ValveInfo)
         assert len(info.positions) > 0
@@ -297,11 +307,13 @@ class TestValveLogic:
 # Group 4 — Command compilation (pure unit tests, no device needed)
 # ---------------------------------------------------------------------------
 
+
 class TestCommandCompilation:
 
     def test_compile_absolute_move(self):
         """Protocol1Command.compile() should produce the correct byte string."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.ABSOLUTE_MOVE,
             command_value="24000",
@@ -316,6 +328,7 @@ class TestCommandCompilation:
     def test_compile_valve_angle_cw(self):
         """LA0{angle}R should be produced for CW valve switching."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.VALVE_BY_ANGLE_CW,
             command_value="90",
@@ -327,6 +340,7 @@ class TestCommandCompilation:
     def test_compile_request_done(self):
         """REQUEST_DONE with empty execution_command should produce 'aF'."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.REQUEST_DONE,
             execution_command="",
@@ -338,6 +352,7 @@ class TestCommandCompilation:
     def test_compile_pump_address_2(self):
         """Pump at address 2 should use letter 'b'."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.FIRMWARE_VERSION,
             target_pump_num=2,
@@ -347,6 +362,7 @@ class TestCommandCompilation:
     def test_multiple_compile_produces_correct_prefix(self):
         """multiple_compile should prepend the pump address letter."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.ABSOLUTE_MOVE,
             command_value="1000",
@@ -361,6 +377,7 @@ class TestCommandCompilation:
     def test_multiple_compile_invalid_pump_num_raises(self):
         """target_pump_num outside 1-16 should raise ValueError."""
         from flowchem.devices.hamilton.ml600 import Protocol1Command, ML600Commands
+
         cmd = Protocol1Command(
             command=ML600Commands.FIRMWARE_VERSION,
             target_pump_num=99,
@@ -372,6 +389,7 @@ class TestCommandCompilation:
 # ---------------------------------------------------------------------------
 # Group 5 — Sim IO state machine (direct unit tests)
 # ---------------------------------------------------------------------------
+
 
 class TestSimulatedIO:
 

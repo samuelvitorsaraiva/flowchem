@@ -1,9 +1,13 @@
 """Simulated Bio-Chem solenoid valve."""
+
 from __future__ import annotations
 
 from loguru import logger
 
-from flowchem.devices.biochem.solenoid_valve import BioChemSolenoidValve, BioChemSolenoid2WayValve
+from flowchem.devices.biochem.solenoid_valve import (
+    BioChemSolenoidValve,
+    BioChemSolenoid2WayValve,
+)
 from flowchem.components.technical.relay import Relay
 
 

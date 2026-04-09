@@ -1,5 +1,8 @@
 """Simulated Knauer Autosampler AS 6.1L."""
+
 from __future__ import annotations
+
+from typing import Any, cast
 
 from loguru import logger
 
@@ -44,7 +47,7 @@ class KnauerAutosamplerSim(FlowchemDevice):
         super().__init__(name or "sim-autosampler")
         self.autosampler_id = autosampler_id
         self.tray_type = tray_type.upper()
-        self._syringe_volume = 250   # µL
+        self._syringe_volume = 250  # µL
 
         self.device_info = DeviceInfo(
             manufacturer="Knauer",
@@ -83,12 +86,15 @@ class KnauerAutosamplerSim(FlowchemDevice):
             AutosamplerSyringeValve,
             AutosamplerInjectionValve,
         )
-        self.components.extend([
-            AutosamplerGantry3D("gantry3D", self),
-            AutosamplerPump("pump", self),
-            AutosamplerSyringeValve("syringe_valve", self),
-            AutosamplerInjectionValve("injection_valve", self),
-        ])
+
+        self.components.extend(
+            [
+                AutosamplerGantry3D("gantry3D", cast(Any, self)),
+                AutosamplerPump("pump", cast(Any, self)),
+                AutosamplerSyringeValve("syringe_valve", cast(Any, self)),
+                AutosamplerInjectionValve("injection_valve", cast(Any, self)),
+            ]
+        )
         logger.info(f"[SIM] KnauerAutosampler '{self.name}' components registered.")
 
     # ------------------------------------------------------------------
@@ -118,7 +124,9 @@ class KnauerAutosamplerSim(FlowchemDevice):
             return port.upper()
         return self._sim_syringe_valve
 
-    async def set_raw_position(self, position: str | None = None, target_component: str | None = None) -> str:
+    async def set_raw_position(
+        self, position: str | None = None, target_component: str | None = None
+    ) -> str:
         match target_component:
             case "injection_valve":
                 return await self.injector_valve_position(port=position)
@@ -143,7 +151,9 @@ class KnauerAutosamplerSim(FlowchemDevice):
         well: int | None = None,
     ) -> bool:
         self._sim_needle_h = str(needle_position)
-        logger.debug(f"[SIM] Needle horizontal → {needle_position}, plate={plate}, well={well}")
+        logger.debug(
+            f"[SIM] Needle horizontal → {needle_position}, plate={plate}, well={well}"
+        )
         return True
 
     async def _move_needle_vertical(self, move_to: str) -> bool:
@@ -158,12 +168,16 @@ class KnauerAutosamplerSim(FlowchemDevice):
 
     async def aspirate(self, volume: float, flow_rate: float | None = None) -> bool:
         self._sim_aspirated_ul += volume * 1000
-        logger.debug(f"[SIM] Aspirated {volume} mL (total: {self._sim_aspirated_ul} µL)")
+        logger.debug(
+            f"[SIM] Aspirated {volume} mL (total: {self._sim_aspirated_ul} µL)"
+        )
         return True
 
     async def dispense(self, volume: float, flow_rate: float | None = None) -> bool:
         self._sim_dispensed_ul += volume * 1000
-        logger.debug(f"[SIM] Dispensed {volume} mL (total: {self._sim_dispensed_ul} µL)")
+        logger.debug(
+            f"[SIM] Dispensed {volume} mL (total: {self._sim_dispensed_ul} µL)"
+        )
         return True
 
     async def syringe_volume(self, volume: int | None = None) -> int:

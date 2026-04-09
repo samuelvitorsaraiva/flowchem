@@ -1,6 +1,10 @@
 """Shared simulated Knauer Ethernet transport layer."""
+
 from __future__ import annotations
+
 import asyncio
+from typing import cast
+
 from loguru import logger
 
 
@@ -16,11 +20,13 @@ class SimulatedKnauerEthernetDevice:
 
     def __init__(self, ip_address=None, mac_address=None, **kwargs):
         # Accept (and ignore) ip/mac — no network needed.
-        super().__init__(ip_address="127.0.0.1", mac_address=None, **kwargs)
+        super().__init__(  # type: ignore[call-arg]
+            ip_address="127.0.0.1", mac_address=None, **kwargs
+        )
         self._lock = asyncio.Lock()
         # Fake reader/writer so attribute access never raises.
-        self._reader = None
-        self._writer = None
+        self._reader = cast(asyncio.StreamReader, None)
+        self._writer = cast(asyncio.StreamWriter, None)
 
     # ------------------------------------------------------------------
     # Override only the two network primitives used by the real classes

@@ -1,5 +1,8 @@
 """Simulated Vapourtec R4 heater module."""
+
 from __future__ import annotations
+
+from typing import Any, cast
 
 from loguru import logger
 
@@ -10,11 +13,12 @@ from flowchem.devices.vapourtec.r4_heater import R4Heater
 
 class _StubR4Commands:
     """Minimal stub for VapourtecR4Commands (NDA package)."""
-    VERSION        = "V"
+
+    VERSION = "V"
     SET_TEMPERATURE = "ST {channel} {temperature_in_C}"
-    GET_STATUS      = "GS {channel}"
-    POWER_ON        = "PON {channel}"
-    POWER_OFF       = "POFF {channel}"
+    GET_STATUS = "GS {channel}"
+    POWER_ON = "PON {channel}"
+    POWER_OFF = "POFF {channel}"
 
 
 class R4HeaterSim(FlowchemDevice):
@@ -59,8 +63,8 @@ class R4HeaterSim(FlowchemDevice):
         )
 
         # Per-channel state
-        self._sim_temps:   dict[int, float] = {0: 25.0, 1: 25.0, 2: 25.0, 3: 25.0}
-        self._sim_enabled: dict[int, bool]  = {0: False, 1: False, 2: False, 3: False}
+        self._sim_temps: dict[int, float] = {0: 25.0, 1: 25.0, 2: 25.0, 3: 25.0}
+        self._sim_enabled: dict[int, bool] = {0: False, 1: False, 2: False, 3: False}
         self._sim_version: str = "SIM-R4-1.0"
         logger.info(f"[SIM] R4Heater '{name}' initialized.")
 
@@ -77,7 +81,9 @@ class R4HeaterSim(FlowchemDevice):
         """Register four R4HeaterChannelControl components."""
         from flowchem import ureg
         from flowchem.components.technical.temperature import TempRange
-        from flowchem.devices.vapourtec.r4_heater_channel_control import R4HeaterChannelControl
+        from flowchem.devices.vapourtec.r4_heater_channel_control import (
+            R4HeaterChannelControl,
+        )
 
         temp_limits = {
             n: TempRange(
@@ -87,7 +93,12 @@ class R4HeaterSim(FlowchemDevice):
             for n in range(4)
         }
         self.components.extend(
-            [R4HeaterChannelControl(f"reactor{n + 1}", self, n, temp_limits[n]) for n in range(4)]
+            [
+                R4HeaterChannelControl(
+                    f"reactor{n + 1}", cast(Any, self), n, temp_limits[n]
+                )
+                for n in range(4)
+            ]
         )
 
     # ------------------------------------------------------------------

@@ -1,4 +1,5 @@
 """Simulated Manson power supply."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -21,6 +22,7 @@ class MansonPowerSupplySim(MansonPowerSupply):
     def __init__(self, aio=None, name=""):
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         FlowchemDevice.__init__(self, name)
         self._serial = None
         self.device_info = DeviceInfo(

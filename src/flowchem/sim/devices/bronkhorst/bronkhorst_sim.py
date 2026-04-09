@@ -1,4 +1,5 @@
 """Simulated Bronkhorst EL-FLOW MFC and EPC."""
+
 from __future__ import annotations
 
 from loguru import logger
@@ -28,6 +29,7 @@ class MFCSim(MFC):
 
     def __init__(self, port="SIM", name="", channel=1, address=0x80, max_flow=9.0):
         from flowchem.devices.flowchem_device import FlowchemDevice
+
         FlowchemDevice.__init__(self, name)
         self.port = port
         self.channel = channel
@@ -70,6 +72,7 @@ class EPCSim(EPC):
 
     def __init__(self, port="SIM", name="", channel=1, address=0x80, max_pressure=10.0):
         from flowchem.devices.flowchem_device import FlowchemDevice
+
         FlowchemDevice.__init__(self, name)
         self.port = port
         self.channel = channel
@@ -80,7 +83,9 @@ class EPCSim(EPC):
         # Inject fake propar instrument
         self.el_press = _FakeProparInstrument()
         self.id = self.el_press.id
-        logger.debug(f"[SIM] EPC '{name}' initialized (max_pressure={max_pressure} bar)")
+        logger.debug(
+            f"[SIM] EPC '{name}' initialized (max_pressure={max_pressure} bar)"
+        )
 
     @classmethod
     def from_config(cls, **config) -> "EPCSim":

@@ -1,23 +1,15 @@
 """Simulated MPIKG Switch Box."""
+
 from __future__ import annotations
 
 import asyncio
 from loguru import logger
 
 from flowchem.devices.custom.mpikg_switch_box import (
-    SwitchBoxMPIKG,
-    SwitchBoxIO,
-    SwitchBoxGeneralCommand,
     SwitchBoxBeferelayCommand,
-    InfRequest,
-    VariableType,
-    BefrelayPorts,
-    BEFE_RELE_BITS,
-    DAC_BITS,
-    DAC_VOLTS,
-    ADC_VOLTS,
-    int_to_bit_list,
-    bit_to_int,
+    SwitchBoxGeneralCommand,
+    SwitchBoxIO,
+    SwitchBoxMPIKG,
 )
 
 
@@ -37,7 +29,7 @@ class SimulatedSwitchBoxIO(SwitchBoxIO):
         self.lock = asyncio.Lock()
         self._serial = type("_FakeSerial", (), {"port": "SIM", "name": "SIM"})()
         self._sim_ports: dict[str, int] = {"a": 0, "b": 0, "c": 0, "d": 0}
-        self._sim_dac: dict[int, int] = {}   # channel → bits
+        self._sim_dac: dict[int, int] = {}  # channel → bits
         self._sim_version: str = "SIM-SWITCHBOX-V1.0"
 
     @classmethod
@@ -45,7 +37,7 @@ class SimulatedSwitchBoxIO(SwitchBoxIO):
         return cls()
 
     def reset_buffer(self):
-        pass   # Nothing to reset
+        pass  # Nothing to reset
 
     async def write_and_read_reply(
         self, command: SwitchBoxGeneralCommand | SwitchBoxBeferelayCommand
@@ -68,7 +60,7 @@ class SimulatedSwitchBoxIO(SwitchBoxIO):
 
         # ---- RELAY (port) COMMANDS ----
         if len(parts) >= 2:
-            target = parts[1].split(":")[0]   # e.g. "a", "abcd", "starta"
+            target = parts[1].split(":")[0]  # e.g. "a", "abcd", "starta"
 
             if verb == "get":
                 if target == "abcd":
@@ -83,7 +75,7 @@ class SimulatedSwitchBoxIO(SwitchBoxIO):
                     bits = self._sim_dac.get(ch, 0)
                     return f"dac{ch}:{bits}"
                 elif target.startswith("adc"):
-                    return f"adcx:0.000;adcx:0.000"
+                    return "adcx:0.000;adcx:0.000"
 
             elif verb == "set":
                 if ":" in parts[1]:
@@ -117,8 +109,12 @@ class SwitchBoxMPIKGSim(SwitchBoxMPIKG):
     Injects SimulatedSwitchBoxIO so all SwitchBoxMPIKG logic runs unchanged.
     """
 
+    sim_io: SimulatedSwitchBoxIO
+
     @classmethod
-    def from_config(cls, port: str = "SIM", name: str = "", **serial_kwargs) -> "SwitchBoxMPIKGSim":
+    def from_config(
+        cls, port: str = "SIM", name: str = "", **serial_kwargs
+    ) -> "SwitchBoxMPIKGSim":
         sim_io = SimulatedSwitchBoxIO()
         instance = cls(box_io=sim_io, name=name or "sim-switchbox")
         instance.sim_io = sim_io

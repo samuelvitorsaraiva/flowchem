@@ -1,7 +1,10 @@
 """Simulated Mettler-Toledo iCIR (FlowIR / ReactIR)."""
+
 from __future__ import annotations
 
 import datetime
+from typing import Any, cast
+
 from loguru import logger
 
 from flowchem.components.analytics.ir import IRSpectrum
@@ -35,7 +38,7 @@ class IcIRSim(FlowchemDevice):
         self._sim_running: bool = False
         self._sim_sample_count: int = 0
         # A minimal fake spectrum: 10 wavenumber/intensity pairs
-        wn = list(range(4000, 650, -335))
+        wn = [float(value) for value in range(4000, 650, -335)]
         self._sim_spectrum = IRSpectrum(wavenumber=wn, intensity=[0.1] * len(wn))
         logger.info(f"[SIM] IcIR '{name}' initialized.")
 
@@ -49,8 +52,9 @@ class IcIRSim(FlowchemDevice):
 
     async def initialize(self):
         from flowchem.devices.mettlertoledo.icir_control import IcIRControl
+
         logger.info("[SIM] IcIR skipping OPC-UA connection.")
-        self.components.append(IcIRControl("ir-control", self))
+        self.components.append(IcIRControl("ir-control", cast(Any, self)))
 
     # Implement the public API that IcIRControl calls
     async def is_iCIR_connected(self) -> bool:

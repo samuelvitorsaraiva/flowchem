@@ -1,4 +1,5 @@
 """Tests for BioChemSolenoidValveSim."""
+
 import pytest
 from flowchem.sim.devices.biochem.solenoid_sim import (
     BioChemSolenoidValveSim,
@@ -18,6 +19,7 @@ async def solenoid_no() -> BioChemSolenoidValveSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def solenoid_nc() -> BioChemSolenoidValveSim:
     """Normally closed solenoid valve."""
@@ -29,6 +31,7 @@ async def solenoid_nc() -> BioChemSolenoidValveSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 async def solenoid_2way() -> BioChemSolenoid2WayValveSim:
     device = BioChemSolenoid2WayValveSim.from_config(
@@ -39,9 +42,11 @@ async def solenoid_2way() -> BioChemSolenoid2WayValveSim:
     await device.initialize()
     return device
 
+
 @pytest.fixture
 def valve_component_no(solenoid_no):
     return solenoid_no.components[0]
+
 
 @pytest.fixture
 def valve_component_nc(solenoid_nc):
@@ -53,6 +58,7 @@ class TestSimulatedRelay:
     async def test_initial_state_off(self):
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         stub = FlowchemDevice.__new__(FlowchemDevice)
         stub.name = "stub"
         stub.device_info = DeviceInfo()
@@ -63,6 +69,7 @@ class TestSimulatedRelay:
     async def test_power_on(self):
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         stub = FlowchemDevice.__new__(FlowchemDevice)
         stub.name = "stub"
         stub.device_info = DeviceInfo()
@@ -75,6 +82,7 @@ class TestSimulatedRelay:
     async def test_power_off(self):
         from flowchem.devices.flowchem_device import FlowchemDevice
         from flowchem.components.device_info import DeviceInfo
+
         stub = FlowchemDevice.__new__(FlowchemDevice)
         stub.name = "stub"
         stub.device_info = DeviceInfo()
@@ -93,6 +101,7 @@ class TestBioChemSolenoidValveSim:
 
     async def test_relay_registered(self, solenoid_no):
         from flowchem.components.technical.relay import Relay
+
         assert solenoid_no.support_platform in Relay.INSTANCES
 
     # Normally open: open = relay OFF, close = relay ON

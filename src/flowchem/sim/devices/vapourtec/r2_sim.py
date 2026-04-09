@@ -1,5 +1,10 @@
 """Simulated Vapourtec R2 reactor module."""
+
 from __future__ import annotations
+
+from typing import Any, cast
+
+import pint
 
 from loguru import logger
 
@@ -9,6 +14,7 @@ from flowchem.components.device_info import DeviceInfo
 
 class _StubR2Commands:
     """Minimal stub for VapourtecR2Commands (which is under NDA)."""
+
     VERSION = "V"
     GET_SYSTEM_TYPE = "ST"
     GET_STATUS = "GS"
@@ -81,32 +87,42 @@ class R2Sim(FlowchemDevice):
         from flowchem.components.technical.temperature import TempRange
         from flowchem import ureg
         from flowchem.devices.vapourtec.r2_components_control import (
-            R2GeneralPressureSensor, R2GeneralSensor, R2HPLCPump,
-            R2InjectionValve, R2MainSwitch, R2PumpPressureSensor,
-            R2TwoPortValve, UV150PhotoReactor, R4Reactor,
+            R2GeneralPressureSensor,
+            R2GeneralSensor,
+            R2HPLCPump,
+            R2InjectionValve,
+            R2MainSwitch,
+            R2PumpPressureSensor,
+            R2TwoPortValve,
+            UV150PhotoReactor,
+            R4Reactor,
         )
 
-        min_t = ureg.Quantity("-40 degC")
-        max_t = ureg.Quantity("80 degC")
+        min_t: pint.Quantity = ureg.Quantity("-40 degC")
+        max_t: pint.Quantity = ureg.Quantity("80 degC")
         temp_range = TempRange(min=min_t, max=max_t)
 
-        self.components.extend([
-            R2MainSwitch("Power", self),
-            R2GeneralPressureSensor("PressureSensor", self),
-            R2GeneralSensor("GSensor2", self),
-            UV150PhotoReactor("PhotoReactor", self),
-            R2HPLCPump("Pump_A", self, "A"),
-            R2HPLCPump("Pump_B", self, "B"),
-            R2TwoPortValve("ReagentValve_A", self, 0),
-            R2TwoPortValve("ReagentValve_B", self, 1),
-            R2TwoPortValve("CollectionValve", self, 4),
-            R2InjectionValve("InjectionValve_A", self, 2),
-            R2InjectionValve("InjectionValve_B", self, 3),
-            R2PumpPressureSensor("PumpSensor_A", self, 0),
-            R2PumpPressureSensor("PumpSensor_B", self, 1),
-        ])
+        self.components.extend(
+            [
+                R2MainSwitch("Power", cast(Any, self)),
+                R2GeneralPressureSensor("PressureSensor", cast(Any, self)),
+                R2GeneralSensor("GSensor2", cast(Any, self)),
+                UV150PhotoReactor("PhotoReactor", cast(Any, self)),
+                R2HPLCPump("Pump_A", cast(Any, self), "A"),
+                R2HPLCPump("Pump_B", cast(Any, self), "B"),
+                R2TwoPortValve("ReagentValve_A", cast(Any, self), 0),
+                R2TwoPortValve("ReagentValve_B", cast(Any, self), 1),
+                R2TwoPortValve("CollectionValve", cast(Any, self), 4),
+                R2InjectionValve("InjectionValve_A", cast(Any, self), 2),
+                R2InjectionValve("InjectionValve_B", cast(Any, self), 3),
+                R2PumpPressureSensor("PumpSensor_A", cast(Any, self), 0),
+                R2PumpPressureSensor("PumpSensor_B", cast(Any, self), 1),
+            ]
+        )
         for n in range(4):
-            self.components.append(R4Reactor(f"reactor-{n+1}", self, n, temp_range))
+            self.components.append(
+                R4Reactor(f"reactor-{n+1}", cast(Any, self), n, temp_range)
+            )
 
     # Stub implementations of every method called by R2 components
     async def write_and_read_reply(self, command: str) -> str:
@@ -170,6 +186,7 @@ class R2Sim(FlowchemDevice):
 
     async def get_status(self):
         from flowchem.devices.vapourtec.r2 import R2
+
         raw = await self.write_and_read_reply(self.cmd.GET_STATUS)
         return R2.AllComponentStatus._make(raw.split(" "))
 
@@ -178,6 +195,7 @@ class R2Sim(FlowchemDevice):
 
     async def get_current_pressure(self, pump_code: int = 2):
         from flowchem import ureg
+
         return self._sim_pressure[pump_code] * ureg.mbar
 
     async def get_current_flow(self, pump_code: str) -> float:
@@ -185,11 +203,14 @@ class R2Sim(FlowchemDevice):
 
     async def set_flowrate(self, pump: str, flowrate: str):
         from flowchem import ureg
-        q = ureg.Quantity(flowrate)
+
+        q: pint.Quantity = ureg.Quantity(flowrate)
         self._sim_flowrate[pump] = round(q.m_as("ul/min"))
 
     async def set_temperature(self, channel, temp, heating=None, ramp_rate="80"):
-        self._sim_temp[channel] = temp.m_as("degC") if hasattr(temp, "m_as") else float(temp)
+        self._sim_temp[channel] = (
+            temp.m_as("degC") if hasattr(temp, "m_as") else float(temp)
+        )
 
     async def set_pressure_limit(self, pressure: str):
         pass

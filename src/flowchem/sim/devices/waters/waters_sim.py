@@ -1,4 +1,5 @@
 """Simulated Waters Xevo MS (AutoLynx file-based interface)."""
+
 from __future__ import annotations
 
 from pathlib import Path

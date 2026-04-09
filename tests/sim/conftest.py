@@ -1,4 +1,5 @@
 """Shared fixtures for all sim tests."""
+
 import pytest
 
 
@@ -6,4 +7,5 @@ import pytest
 def event_loop_policy():
     """Use the default event loop policy for all sim tests."""
     import asyncio
+
     return asyncio.DefaultEventLoopPolicy()
