@@ -69,6 +69,10 @@ class EPCComponent(PressureSensor):
         await self.hw_device.set_pressure(pressure)
         return True
 
+    async def set_pressure(self, pressure: str) -> bool:
+        """Backward-compatible alias for setting the pressure setpoint."""
+        return await self.set_pressure_setpoint(pressure)
+
     async def get_pressure(self) -> float:
         """
         Get the current system pressure in bar.
@@ -164,6 +168,10 @@ class MFCComponent(FlowchemComponent):
         await self.hw_device.set_flow_setpoint(flowrate)
         return True
 
+    async def set_flow_rate(self, flowrate: str) -> bool:
+        """Backward-compatible alias for setting the flow setpoint."""
+        return await self.set_flow_setpoint(flowrate)
+
     async def get_flow_setpoint(self) -> float:
         """
         Get the current flow rate in ml/min.
@@ -174,6 +182,10 @@ class MFCComponent(FlowchemComponent):
             The current flow rate in ml/min.
         """
         return await self.hw_device.get_flow_setpoint()
+
+    async def get_flow_rate(self) -> float:
+        """Backward-compatible alias for retrieving the flow setpoint."""
+        return await self.get_flow_setpoint()
 
     async def stop(self) -> bool:
         """

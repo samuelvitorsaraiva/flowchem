@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import tempfile
 from loguru import logger
 
 from flowchem.devices.waters.waters_ms import WatersMS
@@ -30,8 +29,14 @@ class WatersMSSim(WatersMS):
         tune_file: str = "",
         inlet_method: str = "inlet_method",
     ):
-        # Use a real temp dir so file-write logic can still run if desired.
-        sim_queue = path_to_AutoLynxQ or tempfile.mkdtemp(prefix="sim_autolynxq_")
+        # Keep queue-file writes inside the current workspace so local test runs
+        # do not depend on permissions for the system temp directory.
+        if path_to_AutoLynxQ:
+            sim_queue = path_to_AutoLynxQ
+        else:
+            sim_root = Path.cwd() / ".flowchem-sim" / "waters-ms"
+            sim_root.mkdir(parents=True, exist_ok=True)
+            sim_queue = str(sim_root)
         super().__init__(
             name=name,
             path_to_AutoLynxQ=sim_queue,

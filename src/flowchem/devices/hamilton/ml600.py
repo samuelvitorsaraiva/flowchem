@@ -617,9 +617,10 @@ class ML600(FlowchemDevice):
         all_status = "".join(format(byte, "08b") for byte in reply.encode("ascii"))[
             ::-1
         ]
-        # 1 is true and 0 is false according to the manual; but the real signal is opposite.
+        # In the payload returned by the pump, ``1`` marks a busy component and
+        # ``0`` marks an idle one.
         if -1 < component < 5:
-            return all_status[component] == "0"
+            return all_status[component] == "1"
         value_map = {
             0: "left_valve busy",
             1: "left_pump busy",
@@ -630,8 +631,8 @@ class ML600(FlowchemDevice):
         }
         status = {}
         for key in value_map:
-            logger.debug(f"{value_map[key]} : {all_status[key] == '0'}")
-            status[value_map[key]] = all_status[key] == "0"
+            logger.debug(f"{value_map[key]} : {all_status[key] == '1'}")
+            status[value_map[key]] = all_status[key] == "1"
         return status
 
     async def general_status_info(self, component: int = -1) -> bool | dict[str, bool]:

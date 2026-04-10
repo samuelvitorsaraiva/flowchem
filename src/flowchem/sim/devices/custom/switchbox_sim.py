@@ -75,7 +75,7 @@ class SimulatedSwitchBoxIO(SwitchBoxIO):
                     bits = self._sim_dac.get(ch, 0)
                     return f"dac{ch}:{bits}"
                 elif target.startswith("adc"):
-                    return "adcx:0.000;adcx:0.000"
+                    return ";".join(f"adc{channel}:0.000" for channel in range(1, 9))
 
             elif verb == "set":
                 if ":" in parts[1]:

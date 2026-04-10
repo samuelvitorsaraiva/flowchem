@@ -34,11 +34,12 @@ class ML600Pump(SyringePump):
         """
         super().__init__(name, hw_device)
         self.add_api_route("/set_to_volume", self.set_to_volume, methods=["PUT"])
-        self.add_api_route(
-            "/set_to_volume_dual_syringes",
-            self.set_to_volume_dual_syringes,
-            methods=["PUT"],
-        )
+        if self.hw_device.dual_syringe:
+            self.add_api_route(
+                "/set_to_volume_dual_syringes",
+                self.set_to_volume_dual_syringes,
+                methods=["PUT"],
+            )
         self.add_api_route(
             "/get_current_volume", self.get_current_volume, methods=["GET"]
         )
@@ -117,11 +118,14 @@ class ML600Pump(SyringePump):
         if not rate:
             rate = self.hw_device.config.get("default_infuse_rate")  # type: ignore
             logger.warning(f"the flow rate is not provided. set to the default {rate}")
+        effective_volume: pint.Quantity
         if not volume:
             target_vol: pint.Quantity = ureg.Quantity("0 ml")
+            effective_volume = await self.hw_device.get_current_volume(self.pump_code)
             logger.warning("the volume to infuse is not provided. set to 0 ml")
         else:
             current_volume = await self.hw_device.get_current_volume(self.pump_code)
+            effective_volume = ureg.Quantity(volume)
             target_vol = current_volume - ureg.Quantity(volume)
             if target_vol < 0:
                 logger.error(
@@ -134,7 +138,7 @@ class ML600Pump(SyringePump):
             target_vol, ureg.Quantity(rate), self.pump_code
         )
         logger.info(
-            f"infusing is run. it will take {ureg.Quantity(volume) / ureg.Quantity(rate)} to finish."
+            f"infusing is run. it will take {effective_volume / ureg.Quantity(rate)} to finish."
         )
         return await self.hw_device.get_pump_status(self.pump_code)
 

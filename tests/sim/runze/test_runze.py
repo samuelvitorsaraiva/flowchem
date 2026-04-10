@@ -77,7 +77,7 @@ class TestRunzeValveSim:
 
     async def test_12port_valve_type(self, runze_12):
         assert (
-            runze_6.device_info.additional_info["valve-type"]
+            runze_12.device_info.additional_info["valve-type"]
             == RunzeValveHeads.TWELVE_PORT_TWELVE_POSITION
         )
 

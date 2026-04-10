@@ -32,7 +32,8 @@ class HuberTemperatureControl(TemperatureControl):
             bool: True if the temperature was successfully set, False otherwise.
         """
         set_t = await super().set_temperature(temp)
-        return await self.hw_device.set_temperature(set_t)
+        await self.hw_device.set_temperature(set_t)
+        return set_t
 
     async def get_temperature(self) -> float:
         """

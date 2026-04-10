@@ -17,7 +17,7 @@ class SimulatedViciValcoValveIO(ViciValcoValveIO):
 
     State
     -----
-    _sim_position : str   current position ("A" / "B" or "1" / "2")
+    _sim_position : str   current position ("A" / "B")
     _sim_version  : str   firmware version string
     """
 
@@ -49,7 +49,7 @@ class SimulatedViciValcoValveIO(ViciValcoValveIO):
             return ""  # reply_lines=0
 
         if cmd == "CP":
-            return f"Position is  = {self._sim_position}"
+            return self._sim_position
 
         if cmd == "VR":
             return self._sim_version

@@ -295,9 +295,7 @@ class SimulatedHamiltonPumpIO(HamiltonPumpIO):
         if cmd_body == "U" or cmd_body.endswith("U"):
             return _ack(state.firmware_version)
 
-        # BUSY_STATUS: "T1"  → all-idle bit pattern
-        # The real pump returns ASCII bytes whose bits encode busy/idle per component.
-        # "@" = 0x40 = 0b01000000; reversed = "00000010" — all relevant bits are 0 (idle).
+        # BUSY_STATUS: "T1"  → all-idle bit pattern.
         if "T1" in cmd_body:
             return _ack("@")
 
@@ -462,3 +460,9 @@ class ML600Sim(ML600):
         # Expose the IO layer directly so tests can inspect/manipulate state.
         instance.sim_io = sim_io
         return instance
+
+    async def initialize(self, init_speed: str = "200 sec / stroke"):
+        """Initialize the simulated pump and start with a full syringe volume."""
+        await super().initialize(init_speed=init_speed)
+        for state in self.sim_io._state.values():
+            state.syringe_position = 48000

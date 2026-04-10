@@ -138,7 +138,7 @@ class AutosamplerGantry3D(gantry3D):
     async def reset_errors(self) -> bool:
         """Resets AS error"""
         errors = await self.hw_device.get_errors()
-        if errors:
+        if errors and errors != "No Error.":
             logger.info(f"Error: {errors} was present")
             await self.hw_device.reset_errors()
             logger.info("Errors reset")
@@ -218,6 +218,10 @@ class AutosamplerPump(SyringePump):
             return True
         else:
             return False
+
+    async def stop(self) -> bool:
+        """Stop the simulated pump operation."""
+        return True
 
 
 class AutosamplerInjectionValve(SixPortTwoPositionValve):

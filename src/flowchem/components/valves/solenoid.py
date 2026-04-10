@@ -31,6 +31,7 @@ class SolenoidValve(FlowchemComponent):
         self.add_api_route("/open", self.open, methods=["PUT"])
         self.add_api_route("/close", self.close, methods=["PUT"])
         self.add_api_route("/is_open", self.is_open, methods=["GET"])
+        self.add_api_route("/status", self.get_status, methods=["GET"])
 
     async def open(self):
         """
@@ -60,6 +61,10 @@ class SolenoidValve(FlowchemComponent):
             `True` if the valve is open, `False` if closed.
         """
         return await self.hw_device.is_open()  # type: ignore[attr-defined]
+
+    async def get_status(self) -> bool:
+        """Backward-compatible alias for checking whether the valve is open."""
+        return await self.is_open()
 
 
 class SolenoidValve2Way(SolenoidValve):

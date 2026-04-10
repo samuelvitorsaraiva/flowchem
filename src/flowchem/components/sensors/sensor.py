@@ -44,8 +44,8 @@ class Sensor(AnalogDigitalConverter):
 
     async def power_on(self):
         """Power on the sensor."""
-        raise NotImplementedError
+        return True
 
     async def power_off(self):
         """Power off the sensor."""
-        raise NotImplementedError
+        return True

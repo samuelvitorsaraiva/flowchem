@@ -561,7 +561,8 @@ class SwitchBoxMPIKG(FlowchemDevice):
         result = {}
         for ports in asw.split(";"):
             value = float(ports.split(":")[1])
-            result[ports.split(":")[0][1:]] = value
+            channel = ports.split(":")[0].lower().removeprefix("adc")
+            result[f"ADC{channel}"] = value
         return result
 
     async def get_dac(self, channel: int = 1, volts: bool = True):

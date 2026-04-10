@@ -54,3 +54,10 @@ class PressureSensor(Sensor):
             The current pressure in the specified units.
         """
         raise NotImplementedError
+
+    async def read(self) -> float:
+        """Read the current pressure using the default output units."""
+        pressure = await self.read_pressure()
+        if hasattr(pressure, "m_as"):
+            return float(pressure.m_as("bar"))
+        return float(pressure)

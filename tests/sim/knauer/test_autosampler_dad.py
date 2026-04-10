@@ -254,7 +254,7 @@ class TestKnauerDADSim:
         await dad.lamp("d2", "OFF")
         assert dad._sim_lamps["d2"] == "0"
 
-    async def test_lamp_component_power_on(self, lamp_d2):
+    async def test_lamp_component_power_on(self, lamp_d2, dad):
         await lamp_d2.power_on()
         assert dad._sim_lamps["d2"] == "1"  # verifiable via fixture below
 

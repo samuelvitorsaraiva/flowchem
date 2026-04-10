@@ -21,6 +21,10 @@ class PhotoSensor(Sensor):
         """Read from sensor, result to be expressed in % (optional)."""
         ...
 
+    async def read(self):
+        """Read the current photo signal through the generic sensor route."""
+        return await self.acquire_signal()
+
     async def power_on(self): ...
 
     async def power_off(self): ...

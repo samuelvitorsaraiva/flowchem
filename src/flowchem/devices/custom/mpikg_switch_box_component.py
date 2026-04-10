@@ -84,7 +84,7 @@ class SwitchBoxADC(MultiChannelADC):
         """
         asw = await self.read_all()
         value = asw.get(f"ADC{channel}")
-        if value:
+        if value is not None:
             return value
         raise AttributeError(f"There is no channel '{channel} in ADC ports!'")
 
