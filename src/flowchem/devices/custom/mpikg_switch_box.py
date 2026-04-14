@@ -408,20 +408,16 @@ class SwitchBoxMPIKG(FlowchemDevice):
             False otherwise.
         """
 
-        # verify values
+        # verify port
+        port = port.lower()
         if port not in [p.value for p in BefrelayPorts]:
-            logger.error("Values should be in [0, 1, 2]")
+            logger.error(f"There is not port {port} in device {self.name}!")
             return False
         if len(values) > 8:
             logger.error(f"Port only have 8 channels - It was provide {len(values)}!")
             return False
         while len(values) < 8:
             values.append(0)
-        # verify port
-        port = port.lower()
-        if port not in BefrelayPorts:
-            logger.error(f"There is not port {port} in device {self.name}!")
-            return False
 
         """
         Bits are mapped as:

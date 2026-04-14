@@ -1,2 +1,0 @@
-FILE_NAME	MS_FILE	MS_TUNE_FILE	INLET_FILE	SAMPLE_LOCATION	Index
-smoke-sample			inlet_method	66	1
