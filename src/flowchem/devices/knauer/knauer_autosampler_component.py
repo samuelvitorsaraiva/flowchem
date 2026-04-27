@@ -62,7 +62,7 @@ class AutosamplerGantry3D(gantry3D):
         """
         await self.set_z_position("UP")
         await self.hw_device._move_needle_horizontal(needle_position=position)
-        logger.info(f"Needle moved succesfully to position: {position}")
+        logger.info(f"Needle moved successfully to position: {position}")
         return True
 
     async def connect_to_position(self, row: int, column: str, tray: str = "") -> bool:
