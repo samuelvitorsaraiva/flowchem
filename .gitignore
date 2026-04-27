@@ -141,3 +141,5 @@ dmypy.json
 
 # pytest
 .pytest-cache*
+
+.flowchem-sim/
