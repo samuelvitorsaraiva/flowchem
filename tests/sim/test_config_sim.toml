@@ -111,3 +111,6 @@ normally_open = false
 [device.sim-r4]
 type = "R4Heater"
 port = "COM_SIM"
+
+[device.sim-r2]
+type = "R2"
